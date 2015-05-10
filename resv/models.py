@@ -241,10 +241,10 @@ class Blind(models.Model):
     ranch = models.ForeignKey('Ranch')
     name = models.CharField(max_length=15)
     
-    capacity_parties = models.PositiveSmallIntegerField() #make ok to be null
-    capacity_hunters = models.PositiveSmallIntegerField()
-    capacity_persons = models.PositiveSmallIntegerField()
-    #capacity_perparty = models.PositiveSmallIntegerField()
+    capacity_parties = models.PositiveSmallIntegerField(blank=True) #make ok to be null
+    capacity_hunters = models.PositiveSmallIntegerField(blank=True)
+    capacity_persons = models.PositiveSmallIntegerField(blank=True)
+    capacity_perparty = models.PositiveSmallIntegerField(blank=True)
 
     shoot_days = models.CharField(max_length=7)
     open_for_resvs = models.DateTimeField(default=get_default_datetime)
@@ -473,7 +473,7 @@ class Resv(models.Model):
     updated = models.DateTimeField(auto_now=True)
     owner = models.ForeignKey('Person')
     state = FSMField(default='Pending')
-    #status = models.CharField(choices=RESV_STATES, max_length=10, default='Pending') 
+    status = models.CharField(choices=RESV_STATES, max_length=10, default='Pending') # not sure if this is needed, but reincluding now.
     def get_game(self):
         games = []
         for seg in self.get_blocking_segs():
@@ -629,7 +629,7 @@ class ResvSegment(models.Model):
     state = FSMField(default='Pending')
     standby_state = models.PositiveIntegerField(default=0)
     standby_updated = models.DateTimeField(auto_now_add=True)
-    #status = models.CharField(choices=RESV_STATES, max_length=10, default='Pending') 
+    status = models.CharField(choices=RESV_STATES, max_length=10, default='Pending') #Not sure if needed but reincluding now.
     
     @saveme
     def create(self, resv_id, blind_id, owner_id, resv_start_date, state='Pending'):
@@ -1010,7 +1010,7 @@ class Person(AbstractBaseUser, PermissionsMixin):
     is_guest = models.CharField(max_length=1)
     REQUIRED_FIELDS = ['family', 'date_of_birth', 'first_name', 'last_name', 'id_number', 'is_guest']
     is_active = models.BooleanField(default=True) #for Django Auth
-  #  is_superuser = models.BooleanField(default=True) #for Django Auth
+   # is_superuser = models.BooleanField(default=False) #for Django Auth  #name collision
     is_staff = models.BooleanField(default=True) #for Django Auth
 
     objects = PersonManager()
