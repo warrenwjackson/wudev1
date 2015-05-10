@@ -1,0 +1,42 @@
+{% extends 'base_resv.html' %}
+
+{% block title %}WU/Home{% endblock title %}
+
+{% block content_title %}Your reservations{% endblock content_title %}
+
+{% block content %}
+
+<div id="addtoresv" class="reveal-modal" data-reveal >
+
+   <div class='row' id='resvseg_container'>
+      <div class='large-8 large-centered columns'>
+        <div id="segformcontainer" class="row" >
+            <div class='large-12 large-centered columns'>
+                
+                <div id="seglocation" class="row" >
+                  <div class='large-12 large-centered columns'>
+                    
+                    <div class='large-8 large-centered columns'>
+                              <label for="id_game">Select an activity or game</label>
+                              <select class="select" id="id_game" name="resv_game" style="width:100%">
+                                <option value="1">Pig</option>
+                                <option value="2">Dove</option>
+                              </select>
+                    </div>
+                  </div>
+                </div>
+
+
+            </div>
+        </div>
+        </div>
+      </div>
+</div>
+
+<script src="/static/foundation/js/foundation.min.js"></script>
+<script type="text/javascript">
+
+$(document).foundation();
+$('#addtoresv').foundation('reveal', 'open');
+</script>
+{% endblock content %}

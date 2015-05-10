@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+{% block title %}Wilderness Unlimited{% endblock title %}
+{% block base_body %}
+<div class="off-canvas-wrap" >
+  <div class="inner-wrap">
+    <nav class="tab-bar">
+      <section class="left-small hide-for-large">
+        <a class="left-off-canvas-toggle menu-icon" ><span></span></a>
+      </section>
+
+      <section class="middle tab-bar-section">
+        <h1 class="title">Wilderness Unlimited</h1>
+      </section>
+
+    </nav>
+
+    <aside class="left-off-canvas-menu">
+      <ul class="off-canvas-list">
+        <li><label>My WU</label></li>
+        <li><a href="/resv">Make a reservation</a></li>
+        <li><a href="/home">View my reservations</a></li>
+        <li><a href="#">View properties maps</a></li>
+        <li><a href="#">View properties reports</a></li>
+
+        <li><label>About WU</label></li>
+        <li><a href="#">An about page...</a></li>
+      </ul>
+    </aside>
+
+   
+
+  <a class="exit-off-canvas"></a>
+
+<section role="main">
+  <div class="row">
+    <div class="large-3  columns">
+      <div class="show-for-large-up">
+        <div class="sidebar">
+          <nav>
+            <ul class="side-nav">
+              <li class='heading'>My WU</li>
+              <li><a href="/resv">Make a reservation</a></li>
+              <li><a href="/home">View my reservations</a></li>
+              <li><a href="#">View properties maps</a></li>
+              <li><a href="#">View properties reports</a></li>
+            </ul>
+          </nav>
+        </div>
+      </div>
+    </div>
+    <div class="large-9 medium-12 columns">
+    {% block alert %}
+    {% for alert in alerts %}
+    <div class='row' id='alertcontainer'>
+    <div class='row'>
+      <div data-alert class="alert-box {{alert.level}} radius">
+      {{alert.text}}
+      <a href="#" class="close">&times;</a>
+    </div>
+  </div>
+  </div>
+  {% endfor %}
+    {% endblock alert %}
+      <div class='row'><h1>{% block content_title %}{% endblock content_title %}</h1></div>
+      {% block content %}{% endblock content %}
+    </div>
+  </div>
+</section>
+
+  </div>
+</div>
+
+{% endblock base_body %}

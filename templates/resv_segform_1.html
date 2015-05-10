@@ -1,0 +1,69 @@
+
+<div id="segformcontainer" class="row" >
+    <div class='large-12 large-centered columns'>
+        <div id="seglocation" class="row" >
+        	<div class='large-6 large-centered columns'>
+        	Ranch: {{seg.blind.ranch}}
+        	</div>
+        	<div class='large-6 large-centered columns'>
+        	Blind: {{seg.blind.name}}
+        	</div>
+        </div>
+		<div class='large-12 large-centered columns'>
+	        <div id="segtiming" class="row" >
+	        	<div class='large-6 large-centered columns'>
+	        	
+	        	</div>
+	        </div>
+      	</div>
+    </div>
+</div>
+
+   
+  
+
+
+ 
+<form  action="/segment/save/" id="quickresv" method="post">
+    <input type='hidden' name='csrfmiddlewaretoken' value='YTLNb4KmwgSRwsonXpkaCErKimvtCDmG' />
+
+    <input id="id_resv" name="resv" type="hidden" value="61" />
+    <input id="id_seg" name="seg" type="hidden" value="100" />
+    <input id="id_owner" name="owner" type="hidden" value="2" />
+
+    <div class="row" >
+    <div class="columns large-8 large-centered columns" >
+    <div class="columns large-6 columns" >
+    <div id="div_id_resv_ranch" class="ctrlHolder">
+    	<label for="id_resv_ranch" class="requiredField">
+                Ranch:<span class="asteriskField">*</span>
+        </label>
+        <select class="select" id="id_resv_ranch" name="resv_ranch" style="width:100%">
+        	<option value="1">100 Mosby Ranch</option>
+       	</select>
+    </div>
+    </div>
+    <div class="columns large-3 columns" ><div id="div_id_resv_blind" class="ctrlHolder"><label for="id_resv_blind" class="requiredField">
+                Blind:<span class="asteriskField">*</span></label><select class="select" id="id_resv_blind" name="resv_blind" style="width:100%"><option value="1"></option></select></div></div><div class="columns large-3 columns" ><div id="div_id_resv_game" class="ctrlHolder"><label for="id_resv_game" class="requiredField">
+                Game:<span class="asteriskField">*</span></label><select class="select" id="id_resv_game" name="resv_game" style="width:100%"><option value="1" selected="selected">Pig</option><option value="2">Deer</option></select></div></div></div></div><div class="row"  id="person_0"><div class="columns large-8 large-centered columns" ><div class="columns large-6 columns" ><div id="div_id_hunter_0" class="ctrlHolder"><label for="id_hunter_0" >
+                Hunter 1
+            </label><select class="select" id="id_hunter_0" name="hunter_0" style="width:100%"><option value="">---------</option><option value="3">Jenna Owens</option><option value="4">Jarrett Jackson</option><option value="2" selected="selected">Warren Jackson</option></select></div></div><div class="columns large-6 columns" ><div id="div_id_nonhunter_0" class="ctrlHolder"><label for="id_nonhunter_0" >
+                Nonhunter 1
+            </label><select class="select" id="id_nonhunter_0" name="nonhunter_0" style="width:100%"><option value="" selected="selected">---------</option><option value="3">Jenna Owens</option><option value="4">Jarrett Jackson</option><option value="2">Warren Jackson</option></select></div></div></div></div>
+
+
+
+            </div></div></div></div>
+
+            <div class="row" ><div class="columns large-6 large-offset-5" ><div class="button small  small-5" id="add_person_row" onclick="add_person_row(1);">Add more people</div></div></div><div class="row" >
+
+            <div class="columns large-8 large-centered columns" ><div class="columns large-4 columns" ><div id="div_id_resv_start_date" class="ctrlHolder"><label for="id_resv_start_date" class="requiredField">
+                Start date:<span class="asteriskField">*</span></label><input class="dateinput" id="id_resv_start_date" name="resv_start_date" style="width:100%" type="text" value="08/25/2014" /></div></div><div class="columns large-4 columns" ><div id="div_id_resv_length" class="ctrlHolder"><label for="id_resv_length" class="requiredField">
+                Number of days:<span class="asteriskField">*</span></label><input class="numberinput" id="id_resv_length" name="resv_length" style="width:100%" type="number" value="1" /></div></div></div></div><div class="row" ><div class="columns large-8 large-centered columns" ><div class="columns large-4 columns" ><div id="div_id_dog" class="ctrlHolder"><label for="id_dog" class="requiredField">
+                Are you bringing a dog:<span class="asteriskField">*</span></label><select class="select" id="id_dog" name="dog" style="width:100%"><option value="0" selected="selected">No</option><option value="1">Yes</option></select></div></div><div class="columns large-8 columns" ><div id="div_id_dog_comment" class="ctrlHolder"><label for="id_dog_comment" >
+                Notes about the dog for other guests:
+            </label><input class="textinput textInput" id="id_dog_comment" maxlength="100" name="dog_comment" style="width:100%" type="text" /></div></div></div></div><div class="row large-8 large-centered columns" ><div class="columns large-5 small-12  columns" ><input type="submit" name="savecontinue" value="Save and continue" class="submit button button small" id="submit-id-savecontinue" /></div><div class="columns large-5 small-12 columns" ><input type="submit" name="savereview" value="Save and review reservation" class="submit button button small" id="submit-id-savereview" /></div><input type='submit' class='close-reveal-modal secondary button small ' value='Cancel'/></div><input id="id_show_rows" name="show_rows" type="hidden" value="2" />
+
+
+    
+</form>

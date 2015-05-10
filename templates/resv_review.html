@@ -1,0 +1,392 @@
+{% extends 'base_resv.html' %}
+{% block title %}WU/Resv/Review{% endblock title %}
+{% block alert %}
+{% for notice in user.notifications.unread %}
+  <div class='row'>
+      <div data-alert class="alert-box warning radius">
+      {{ notice.verb }}
+      <a href="#" class="close">&times;</a>
+    </div>
+  </div>
+{% endfor %}
+{% if user.notifications.mark_all_as_read %}{% endif %}
+{% endblock alert %}
+
+{% block content_title %}Review your reservation{% endblock content_title %}
+
+{% block content %}
+
+<div id="modal-selectgame" class="reveal-modal" data-reveal >
+  {% include "resv_modal_selectgame.html" %} 
+</div>
+
+<div id="modal-segment" class="reveal-modal" data-reveal >
+{% include "resv_segform.html" %} 
+      <div id="segbtns" class="row" >
+      <div class='large-8 large-centered columns'>
+      <div id="segbtns" class="row" style="margin-top:20px;">
+            <div class='large-12 large-centered columns'>
+              <div class="columns large-4 small-12 large-offset-1 columns small button" onclick="saveandreview(false);">Save and review reservation </div>
+              <div class="columns large-2 small-12 columns small button secondary" onclick=" location.reload();" >Cancel </div>
+            </div>
+          </div>
+      </div>
+      </div>
+</div>
+<div id="modal_make_standby" class="reveal-modal" data-reveal>
+{% include "modal_create_standby.html" %} 
+</div>
+<div id="modal-selectperson" class="reveal-modal" data-reveal >
+{% include "resv_modal_selectperson.html" %} 
+</div>
+
+
+<div id="confirmcancel" class="reveal-modal small" data-reveal>
+    <div class='row'>
+      <div class='large-8 large-centered columns'>
+        <h3>Are you sure you want to cancel?</h3>
+      </div>
+    </div>
+   <div class='row'>
+    <div class='large-6 columns'>
+      <a href='#' id='cancellink' class='button alert expand'>Yes, cancel</a>
+    </div>
+    <div class='large-6 columns'>
+      <a href='#' class='button expand' onclick="$('#confirmcancel').foundation('reveal', 'close');">No</a>
+    </div>
+   </div>
+</div>
+
+
+
+
+  <div class='row'>
+    <div class='large-6 columns'>
+  <a href='{% if resv.get_valid_pending_segs.count > 0 %}/confirm/{{resv.id}}{% else %}#{% endif %}' class='button {% if resv.get_valid_pending_segs.count == 0 %}disabled{% endif %}'>Confirm pending changes</a>
+  </div>
+  <div class='large-6 columns'>
+  
+  <a href='/resv/{{resv.id}}' class='button'>Add more segments</a>
+  
+  </div>
+  </div>
+  <div class='row'>
+    <table class='responsive'>
+      <tr>
+      <th>Status</th>
+        <th>Start date</th>
+        <th>Ending date</th>
+        <th>Ranch</th>
+        <th>Blind</th>
+        <th>Game</th>
+        <th>Hunters</th>
+        <th>Non-hunters</th>
+
+        <th>Dog</th>
+        <th> </th>
+        <th> </th>
+      </tr>
+      {% for seg in segments|dictsort:"start_date" %}
+        <tr>
+          <td>{{seg.state}}</td>
+          <td>{{seg.start_date}}</td>
+          <td>{{seg.end_date}}</td>
+          <td>{{seg.blind.ranch.display_name}}</td>
+          <td>{{seg.blind.name}}</td>
+          <td>{{seg.game.name}}</td>
+          <td>{{seg.count_hunters}}</td>
+          <td>{{seg.count_nonhunters}}</td>
+          <td>{% if seg.dog != 0 %}<i class="fi-paw doggiestyle"></i>{% endif %}</td>
+          <td><div data-reveal-id="addtoresv" class='button tiny' onclick="edit_seg({{seg.id}});">Change</div></td>
+          <td><div  onclick='load_confirm_cancel({{seg.id}});' class='button tiny'>Cancel</div></td>
+        </tr>
+      {% endfor %}
+    
+    </table>
+  </div>
+
+<script>
+function load_confirm_cancel(seg_id){
+  $("#cancellink").attr("href", "/cancel/segment/".concat(seg_id));
+  $('#confirmcancel').foundation('reveal', 'open');
+}
+function pop_resv_id(data){
+  console.log('pop_resv_id');
+  console.log(data);
+  if (data['action'] == 'continue'){
+     $('#id_resv').val(data['resv_id']);
+     $('#addtoresv').foundation('reveal', 'close'); 
+     location.reload();
+  } else {
+  window.location.replace('/review/'.concat(data['resv_id']))
+  }
+}
+$.ajaxSetup({
+    beforeSend: function(xhr, settings) {
+            // Send the token only if the method warrants CSRF protection
+            // Using the CSRFToken value acquired earlier
+            xhr.setRequestHeader("X-CSRFToken", "{{ csrf_token }}");
+    }
+});
+
+function replace_options(handle, option_list){
+    console.log('replace options called');
+    console.log(handle);
+    console.log(option_list);
+      var $el = $(handle);
+      $el.empty(); // remove old options
+      $.each(option_list, function(key, value) {
+        $el.append($("<option></option>")
+           .attr("value", value[0]).text(value[1]));
+      });
+}
+
+
+function edit_seg(seg_id){
+  get_seg_load_modal(seg_id);
+}
+
+
+
+
+function get_seg_load_modal(seg_id){
+  $.ajax({
+    type: "GET",
+    url: '/segment/' + seg_id +'/json/',
+    dataType: 'json',
+    success: function(data){
+      console.log(data);
+      if(data['error']===""){
+        load_seg_modal(data['seg']);
+      } else {
+        console.log('Error with viewing segment');
+
+      }
+    }
+  }); 
+}
+
+function create_person_button(pers_id, name, seg_id){
+  console.log('Creating button for:');
+  console.log(pers_id);
+  console.log(name);
+  var btn = "<div class='row button secondary small' id='hunter_"+pers_id+"' style='margin:5px 2px 5px 2px; padding: 10px 5px 10px 5px; width:100%' ";
+  return btn.concat("onclick='removeperson("+pers_id+","+seg_id+");'>"+name+" <i class='fi-x'></i></div>");
+}
+function create_people_buttons(people_list, seg_id){
+  console.log('people_list');
+  console.log(people_list);
+  var h = "";
+  var nh = "";
+  for(var i = 0; i < people_list.length; i++){
+    if(people_list[i][2] ){
+      h = h.concat(create_person_button(people_list[i][0], people_list[i][1], seg_id));
+    } else{
+      nh = nh.concat(create_person_button(people_list[i][0], people_list[i][1], seg_id));
+    }
+
+  }
+    console.log(h);
+    console.log(nh);
+    //$( '#huntercontainer' ).remove();
+    $('#huntercontainer').html(h);
+    //$( '#nonhuntercontainer' ).remove();
+    $('#nonhuntercontainer').html(nh);
+}
+
+function load_seg_modal(data){
+  console.log('load_seg_modal');
+  console.log(data);
+  console.log(data['people']);
+  replace_options('#id_modal_ranch', [[data['ranch'],data['ranch']]]);
+  replace_options('#blindname', [[data['blind'],data['blind']]]);
+  replace_options('#id_seg_game', [[data['game'],data['game']]]);
+  create_people_buttons(data['people'], data['seg_id']);
+  $('#id_resv_start_date').val(data['start_date']);
+  $('#id_resv_length').val(data['duration']);
+  $("#seg_id_holder").val(data['seg_id']);
+  $('#modal-segment').foundation('reveal', 'open');
+}
+
+
+
+function removeperson(pers_id, seg_id){
+  // Should first ask to confirm, but cutting things short in the interim. 
+    $.ajax({
+    type: "POST",
+    url: '/segment/person/drop',
+    data:{seg_id:seg_id, person_id:pers_id},
+    dataType: 'json',
+    success: function(data){
+      console.log(data);
+      if(data['error']===""){
+        get_seg_load_modal(data['seg_id']);
+      } else {
+        console.log('Error with viewing segment');
+
+      }
+    }
+  }); 
+}
+
+
+function select_person(is_hunting){
+//fire up new modal with drop down. 
+    var seg_id =  $("#seg_id_holder").val();
+    $.ajax({
+    type: "GET",
+    url: '/segment/'+seg_id+'/person/addlist/',
+ //   data:{seg_id:seg_id, person_id:pers_id},
+    dataType: 'json',
+    success: function(data){
+      console.log(data);
+      if(data['error']===""){
+        load_person_modal(data['person_list'], seg_id, is_hunting);
+      } else {
+        console.log('Error with viewing segment');
+
+      }
+    }
+  }); 
+}
+
+function load_person_modal(person_list, seg_id, is_hunting){
+console.log('is_hunting');
+  console.log(is_hunting);
+    console.log('load_person_modal');
+      var $el = $("#id_person");
+      $el.empty(); // remove old options
+      $.each(person_list, function(key, value) {
+        console.log(value);
+        console.log(key);
+        $el.append($("<option></option>")
+           .attr("value", value[0]).text(value[1]));
+      });
+      $("#seg_id_holder").val(seg_id);
+      $("#is_hunting_holder").val(is_hunting);
+    $('#modal-selectperson').foundation('reveal', 'open');
+  
+}
+
+function submit_person_button(){
+  console.log($("#is_hunting_holder").val());
+
+  submit_person($("#seg_id_holder").val(), $("#id_person").val(),  $("#is_hunting_holder").val() );
+}
+function submit_person(seg_id, person_id, is_hunting){
+  console.log('submit_person_type');
+  console.log(seg_id);
+  console.log(person_id);
+  console.log(is_hunting);
+  $.ajax({
+    type: "POST",
+    url: '/segment/' + seg_id+'/person/add/',
+    data: {seg_id:seg_id, person_id:person_id, is_hunting: is_hunting},
+    dataType: 'json',
+    success: function(data){
+      console.log('Submit person callback success');
+      console.log(data);
+      if(data['error']===""){
+        get_seg_load_modal(data['seg_id']);
+      } else {
+        console.log('Error with submitting person');
+
+      }
+    }
+  }); 
+    $('#modal-selectgame').foundation('reveal', 'close');
+  }
+function saveandcontinue(){
+  submit_dates_and_dog("/resv/");
+  
+}
+function saveandreview(standby_if_full){
+  submit_dates_and_dog("/review/",standby_if_full);
+}
+
+function submit_dates_and_dog(next_url, standby_if_full){
+    var seg_id = $("#seg_id_holder").val();
+    $.ajax({
+    type: "POST",
+    url: '/segment/' + seg_id+'/datesanddog/',
+    data: {seg_id:seg_id,  
+          start_date:$('#id_resv_start_date').val(), 
+            duration:$('#id_resv_length').val(), 
+            dog:$('#id_dog').val(), 
+            dog_comment:$('#id_dog').val(), 
+            make_standby_if_full:standby_if_full,
+            happy_url:next_url},
+    dataType: 'json',
+    success: callback_seg_submit
+  }); 
+}
+
+function callback_seg_submit(data){
+  console.log('callback_seg_submit');
+  console.log(data);
+  $("#id_resv").val(data['resv_id']);
+  if(data['error']===""){
+    console.log(data['happy_url']+data['resv_id']);
+  window.location.replace(data['happy_url']+data['resv_id']);
+  console.log('callback no error');
+} else if(data['error']=="standby"){
+  load_standby_modal(data['seg_id'], data['resv_id']);
+}
+}
+
+function cancel_segment(seg_id, callback){
+   $.ajax({
+    type: "GET",
+    url: '/cancel/segment/' + seg_id,
+    dataType: 'json',
+    success: callback
+  }); 
+}
+
+
+function cancelmodal(){
+   console.log('cancel modal called');
+   $(document).foundation('reflow');
+   console.log('cancel modal called 2');
+    $('#modal-segment').foundation('reveal', 'close ');
+    console.log('cancel modal finished');
+}
+
+
+function load_standby_modal(seg_id, resv_id){
+console.log('load_standby_modal');
+$("#standby_no").attr("onclick", "edit_seg(".concat(seg_id).concat(");"));
+//$("#standby_yes").attr("href", "/review/".concat(resv_id));
+$("#standby_yes").attr("onclick", "saveandreview(true);");
+//standby_create_yes();
+//$("#seg_id_holder").val(seg_id);
+//$("#id_resv").val(resv_id);
+$('#modal_make_standby').foundation('reveal', 'open');
+}
+
+function standby_create_yes(){
+console.log('create yes');
+saveandreview(true);
+//window.location.replace("/review/"+$("#id_resv").val());
+}
+function standby_create_no(){
+console.log('create no');
+console.log($("#seg_id_holder").val());
+cancel_segment($("#seg_id_holder").val(), function(data){console.log('cancel standby called');location.reload();});
+}
+
+
+function show_spinner(formData, jqForm, options){
+   // $("#resvtable tr").remove();
+   destroy_if_exists('#resvtable');
+  $( '#resvtable' ).remove();
+  var spinner = "<div id='resvtable' > Loading... </div>";
+  $('#tablecontainer').append(spinner);
+}
+
+
+
+$(document).foundation() ;
+</script>
+
+{% endblock content %}

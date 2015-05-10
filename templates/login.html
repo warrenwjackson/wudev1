@@ -1,0 +1,30 @@
+{% extends 'base_resv.html' %}
+{% block title %}WU/Login{% endblock title %}
+{% block content_title %}Login{% endblock content_title %}
+ {% block content %}
+
+ <form action="/auth/" method="POST"> {% csrf_token %}
+    <div data-role="fieldcontain">
+        <label for="email">Email:</label><input type="email" name="email" id="email" value="" />
+    </div>
+    <div data-role="fieldcontain">
+        <label for="password">Password:</label><input type="password" name="password" id="password" value="" />
+    </div>    
+    <button type="submit" name="submit" value="submit-value">Sign in</button>
+</form>
+<div class='row'><h1>Or, create a web account (existing members only):</h1></div>
+<form action="/signup/" method="POST"> {% csrf_token %}
+    <div data-role="fieldcontain">
+        <label for="member_number">Member number:</label><input type="text" name="member_number" id="member_number" value="" />
+    </div>
+    <div data-role="fieldcontain">
+        <label for="email">Email (from your WU file):</label><input type="email" name="email" id="email" value="" />
+    </div>
+    <div data-role="fieldcontain">
+        <label for="password">Choose a password:</label><input type="password" name="password" id="password" value="" />
+    </div>    
+    <button type="submit" name="submit" value="submit-value">Sign up</button>
+</form>
+
+ {% endblock content %}
+

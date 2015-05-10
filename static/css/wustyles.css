@@ -1,0 +1,32 @@
+.spaceopen { font-size: 30px; color: #31E300; }
+.spacetaken { font-size: 30px; color: #E33100; }
+.spaceoffline { font-size: 30px; color: #bbbbbb; }
+.doggiestyle {font-size: 21px; color:#777;}
+.bookspace {width: 1000px; height: 350px;}
+
+  button.resv, .button.resv {
+    padding: 0rem 0.2rem 0.4rem 0.4rem;
+    margin: 0rem;
+    border: 0rem;
+vertical-align: sub;
+    font-size: 0.6875rem;
+    background-color: transparent;
+    /*     @else                            { font-size: $padding - rem-calc(2); } */ }
+
+     button.resv:hover, button.resv:focus, .button.resv:hover, .button.resv:focus {
+      background-color: #ddd; }
+
+       table tr td.resvrow{
+    padding: 0;
+
+    vertical-align: sub;
+    font-size: 0rem;
+        margin: 0rem;
+    color: #ff0000; }
+    table tr.resvrow2{
+    padding: 0;
+    margin: 0rem;
+    vertical-align: sub;
+    font-size: 0rem;
+    color: #ff0000; 
+line-height: 0.001rem;}

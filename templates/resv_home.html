@@ -1,0 +1,116 @@
+{% extends 'base_resv.html' %}
+
+{% block title %}WU/Home{% endblock title %}
+
+{% block content_title %}Your reservations{% endblock content_title %}
+
+{% block content %}
+<div id="confirmcancel" class="reveal-modal small" data-reveal>
+    <div class='row'>
+      <div class='large-8 large-centered columns'>
+        <h3>Are you sure you want to cancel?</h3>
+      </div>
+    </div>
+   <div class='row ' id='resvseg_container'>
+    <div class='large-6 columns'>
+      <a href='#' id='cancellink' class='button alert expand'>Yes, cancel</a>
+    </div>
+    <div class='large-6 columns'>
+      <a href='#' class='button expand' onclick="$('#confirmcancel').foundation('reveal', 'close');">No</a>
+    </div>
+   </div>
+</div>
+
+{% if resv_future %}
+
+  <div class='row'>
+    <table class='responsive'>
+      <tr>
+        <th>Status</th>
+        <th>Start date</th>
+        <th>Ending date</th>
+        <th>Ranches</th>
+        <th>Game</th>
+        <th> </th>
+        <th> </th>
+      </tr>
+      {% for resv in resv_future|dictsort:"get_start_date" %}
+      <tr>
+        <td>{{resv.state}}</td>
+        <td>{{resv.get_start_date}}</td>
+        <td>{{resv.get_end_date}}</td>
+        <td>{{resv.get_ranch_summary}}</td>
+        <td>{{resv.get_game_unicode}}</td>
+        <td><a href='/review/{{resv.id}}' class='button tiny'>View or change</a></td>
+        <td><div onclick='load_confirm_cancel({{resv.id}});'  class='button tiny'>Cancel</div></td>
+      </tr>
+      {% endfor %}
+  
+    </table>
+  </div>
+{% else %}
+You have no future reservations.
+{% endif %}
+{% if resv_family %}
+<div class='row'><h3>Reservations for your family</h3></div>
+  <div class='row'>
+    <table class='responsive'>
+      <tr>
+        <th>Status</th>
+        <th>Start date</th>
+        <th>Ending date</th>
+        <th>Ranches</th>
+        <th>Game</th>
+        <th> </th>
+        <th> </th>
+      </tr>
+      {% for resv in resv_family|dictsort:"get_start_date" %}
+      <tr>
+        <td>{{resv.state}}</td>
+        <td>{{resv.get_start_date}}</td>
+        <td>{{resv.get_end_date}}</td>
+        <td>{{resv.get_ranch_summary}}</td>
+        <td>{{resv.get_game_unicode}}</td>
+        <td><a href='/review/{{resv.id}}' class='button tiny'>View or change</a></td>
+        <td><div onclick='load_confirm_cancel({{resv.id}});'  class='button tiny'>Cancel</div></td>
+      </tr>
+      {% endfor %}
+  
+    </table>
+  </div>
+{% endif %}
+{% if resv_past %}
+<div class='row'><h3>Past reservations</h3></div>
+  <div class='row'>
+    <table class='responsive'>
+      <tr>
+        <th>Status</th>
+        <th>Start date</th>
+        <th>Ending date</th>
+        <th>Ranches</th>
+        <th>Game</th>
+        <th> </th>
+        <th> </th>
+      </tr>
+      {% for resv in resv_past|dictsort:"get_start_date" %}
+      <tr>
+        <td>{{resv.state}}</td>
+        <td>{{resv.get_start_date}}</td>
+        <td>{{resv.get_end_date}}</td>
+        <td>{{resv.get_ranch_summary}}</td>
+        <td>{{resv.get_game_unicode}}</td>
+        <td><a href='/review/{{resv.id}}' class='button tiny'>View or change</a></td>
+        <td><div onclick='load_confirm_cancel({{resv.id}});'  class='button tiny'>Cancel</div></td>
+      </tr>
+      {% endfor %}
+  
+    </table>
+  </div>
+{% endif %}
+<script>
+function load_confirm_cancel(resv_id){
+  $("#cancellink").attr("href", '/cancel/resv/'.concat(resv_id));
+  $('#confirmcancel').foundation('reveal', 'open');
+}
+</script>
+{% endblock content %}

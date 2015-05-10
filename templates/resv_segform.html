@@ -1,0 +1,122 @@
+
+
+   <div class='row' id='resvseg_container'>
+      <div class='large-8 large-centered columns'>
+        <div id="segformcontainer" class="row" >
+            <div class='large-12 large-centered columns'>
+                
+                <div id="seglocation" class="row" >
+                  <div class='large-12 large-centered columns'>
+                    <div class='large-6 columns'>
+                              <label for="id_modal_ranch" >Ranch</label>
+                              <select class="select" id="id_modal_ranch" name="id_modal_ranch" style="width:100%">
+                                <option value="1">111 Test Ranch long name</option>
+                              </select>
+                    </div>
+                    <div class='large-3 columns'>
+                              <label for="blindname">Blind</label>
+                              <select class="select" id="blindname" name="resv_blind" style="width:100%">
+                                <option value="1">Free Roam</option>
+                              </select>
+                    </div>
+                    <div class='large-3 columns'>
+                              <label for="id_seg_game">Game</label>
+                              <select class="select" id="id_seg_game" name="id_seg_game" style="width:100%">
+                                <option value="1">Pig</option>
+                                <option value="2">Dove</option>
+                              </select>
+                    </div>
+                  </div>
+                </div>
+
+                <div id="segpeople" class="row" >
+                  <div class='large-12 large-centered columns'>
+                    <div class='large-6 columns'>
+                      
+                       <div class='row'><label style="margin:10px 0px 0px 15px;">Hunters</label></div>
+                       <div id='huntercontainer'>
+                      
+                      <div class='row button secondary small' id='hunter_3' style='margin:5px 2px 5px 2px; padding: 10px 5px 10px 5px; width:100%' onclick='removeperson(3,170);'>Jenna Owens<i class='fi-x'></i></div>
+
+
+                      <div class='row button secondary small' id='nonhunter_1' style="margin:5px 2px 5px 2px; padding: 10px 5px 10px 5px; width:100%" onclick="removeperson(11112);">Warren Jackson <i class="fi-x"></i></div>
+                      <div class='row button secondary small' id='nonhunter_1' style="margin:5px 2px 5px 2px; padding: 10px 5px 10px 5px; width:100%">Mucholonger namedhuntertest <i class="fi-x"></i></div>
+                      </div>
+                      <div class='row button small' id='nonhunter_1' onclick='select_person(true);' style="margin:5px 2px 5px 2px; padding: 10px 5px 10px 5px; width:100%"><i class="fi-plus"></i> Add a hunter</div>
+                    </div>
+                    <div class='large-6 columns'>
+                       <div class='row'><label style="margin:10px 0px 0px 15px;">Nonhunters</label></div>
+                       <div id='nonhuntercontainer'>
+                        <div class='row button secondary small' id='nonhunter_1' style="margin:5px 2px 5px 2px; padding: 10px 5px 10px 5px; width:100%">Warren Jackson <i class="fi-x"></i></div>
+                        <div class='row button secondary small' id='nonhunter_2' style="margin:5px 2px 5px 2px; padding: 10px 5px 10px 5px; width:100%">Mucholonger namedhuntertest <i class="fi-x"></i></div>
+                      </div>
+                      <div class='row button  small' id='add_nonhunter' onclick='select_person(false);' style="margin:5px 2px 5px 2px; padding: 10px 5px 10px 5px; width:100%"><i class="fi-plus"></i> Add a nonhunter</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div id="segdates" class="row" style="margin-top:20px;">
+                  <div class='large-12 large-centered columns'>
+                    <div class="columns large-4 columns" >
+                      <div id="div_id_resv_start_date" class="ctrlHolder">
+                        <label for="id_resv_start_date">Start date</label>
+                        <input class="dateinput" id="id_resv_start_date" name="id_resv_start_date" style="width:100%" type="text" value="08/25/2014" />
+                      </div>
+                    </div>
+                    <div class="columns large-4 columns" >
+                      <div id="div_id_resv_length" class="ctrlHolder">
+                        <label for="id_resv_length" class="requiredField">Number of days</label>
+                        <input class="numberinput" id="id_resv_length" name="resv_length" style="width:100%" type="number" value="1" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+
+
+                <div id="segdogs" class="row" style="margin-top:20px;">
+                  <div class='large-12 large-centered columns'>
+                    <div class="columns large-4 columns" >
+                      <div id="div_id_dog" class="ctrlHolder">
+                        <label for="id_dog" class="requiredField">Are you bringing a dog</label>
+                        <select class="select" id="id_dog" name="dog" style="width:100%">
+                            <option value="0" selected="selected">No</option>
+                            <option value="1">Yes</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div class="columns large-8 columns" >
+                      <div id="div_id_dog_comment" class="ctrlHolder">
+                        <label for="id_dog_comment" >Notes about the dog for other guests:</label>
+                        <input class="textinput textInput" id="id_dog_comment" maxlength="100" name="dog_comment" style="width:100%" type="text" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+
+
+            
+
+
+
+
+            </div>
+        </div>
+</div>
+
+
+
+        
+      </div>
+
+
+
+
+
+
+
+
+
+   
+ 

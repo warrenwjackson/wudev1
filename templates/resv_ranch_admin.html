@@ -1,0 +1,39 @@
+{% extends 'base_resv.html' %}
+
+{% block title %}WU/Ranch/{{ranch}}{% endblock title %}
+
+{% block content_title %}{{ranch}}{% endblock content_title %}
+
+{% block content %}
+  <h4>Ranch info</h4>
+   <div class='row'>
+    <table class='responsive'>
+  <tr><td>Size</td><td>{{ranch.size}} acres</td></tr>
+  <tr><td>Nearest city</td><td>{{ranch.city}}</td></tr>
+  <tr><td>County</td><td>{{ranch.county}}</td></tr>
+  <tr><td>Location</td><td>{% autoescape off %}{{ranch.get_location_html}}{% endautoescape %}</td></tr>
+  <tr><td>Lock combo</td><td>{{ranch.combo}} {{ranch.combo2}}</td></tr>
+  <tr><td>Allows dogs</td><td>{{ranch.get_allows_dogs}}</td></tr>
+  <tr><td>Archery only</td><td>{{ranch.get_archery_only}}</td></tr>
+  <tr><td>Latest comment</td><td>{{ranch.comment}}</td></tr>
+    <tr><td>Open for resvs</td><td>{{ranch.open_for_resv}}</td></tr>
+  </table>
+  </div>
+
+<h4>Reservations</h4>
+<div class='row'>
+    {% for resv_day in roster %}
+    <h5>{{resv_day.date}}</h5>
+    <table >
+    <tr><th>Resv #</th><th>Mbr #</th><th>Name</th><th>Hunting (Y/N)</th><th>Member type</th></tr>
+      {% for resv in resv_day.roster %}
+        {% for hunter in resv.hunters %}
+          <tr><td>{{ resv.resv_id }}</td><td>{{ hunter.family.number }}</td><td>{{ hunter.get_long_name }}</td><td>Y</td><td>{{ hunter.get_membership_type }}</td></tr>
+        {% endfor %}
+        {% for hunter in resv.nonhunters %}
+          <tr><td>{{ hunter }}</td><td>{{ hunter.family.number }}</td><td>{{ hunter.get_long_name }}</td><td>Y</td></tr>
+        {% endfor %}    
+      {% endfor %}  
+    </table>
+    {% endfor %}
+{% endblock content %}

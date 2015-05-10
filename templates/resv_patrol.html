@@ -1,0 +1,80 @@
+{% extends 'base_resv.html' %}
+
+    
+{% block content_title %}Patrolman dashboard{% endblock content_title %}
+
+
+
+ {% block content %}
+        <div class='row'>
+              <div class="content small-12 columns active" id="panel2-1">
+                <form action="/ranch/patrol/" method="get">
+                  <div class='row'>
+                    <div class='large-6 columns'>
+                      <label>Select a ranch:</label>
+                        <select name='ranch' id='ranchlist'>
+                        {% for r in ranch_list %}
+                          <option value="{{r.id}}">{{r.name}}</option>
+                        {% endfor %}
+                        </select>
+                    </div>
+                    <div class='large-6 columns'>
+                      <label>Choose a date:</label>
+                      <input type="text" value="{{default_date}}" name='startdate' id='startdate'/>
+                    </div>
+                  </div>
+                  <div class='row'>
+                  <input type='submit' class='button' value='Search'/>
+                  </div>
+                </form>
+              </div>
+      </div>
+
+  <div class='row'>
+    <table class='responsive'>
+      <tr>
+        <th>Name</th>
+        <th>Blind</th>
+        <th></th>
+        <th></th>
+        <th></th>
+      </tr>
+      <tr>
+        <td>John doe</td>
+        <td>Blind 5</td>
+        <td><div class='button tiny'>Checkin</div></td>
+        <td>   
+          <select name='issue-johndoe'>
+            <option value="">Flag issue</option>
+            <option value="noshow">No show</option>
+            <option value="another">Another issue</option>
+          </select>
+        </td>
+        <td><input type='text' placeholder="Enter comment" name='comment-johndoe'/></td>
+      </tr>
+      <tr>
+        <td>Jane doe</td>
+        <td>Blind 5</td>
+        <td><div class='button tiny'>Checkout</div></td>
+        <td>   
+          <select name='issue-johndoe'>
+            <option value="">Flag issue</option>
+            <option value="noshow">No show</option>
+            <option value="another">Another issue</option>
+          </select>
+        </td>
+        <td><input type='text' placeholder="Enter comment" name='comment-johndoe'/></td>
+      </tr>
+      
+    </table>
+  </div>
+
+  <script >
+
+$(document).ready(function() {
+$("#ranchlist").select2();
+$('#startdate').datepicker();
+});
+</script>    
+
+{% endblock content %}

@@ -14,8 +14,9 @@ https://docs.djangoproject.com/en/1.8/ref/settings/
 import os
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+print "BASE_DIR: ", BASE_DIR
 
-
+AUTH_USER_MODEL = 'resv.Person'  #added 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.8/howto/deployment/checklist/
 
@@ -62,7 +63,7 @@ ROOT_URLCONF = 'wudev1.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -92,6 +93,7 @@ DATABASES = {
     }
 }
 
+
 import dj_database_url
 DATABASES['default'] =  dj_database_url.config(default="postgres://:@localhost/wudev1") #Local
 # Internationalization
@@ -110,6 +112,12 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.8/howto/static-files/
-
+STATICFILES_DIRS = (
+    os.path.join(BASE_DIR, "static"),
+    'static/',
+  #  '/var/www/static/',
+)
 STATIC_URL = '/static/'
+STATIC_ROOT = ''
+
 CRISPY_TEMPLATE_PACK = 'foundation'

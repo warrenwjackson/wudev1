@@ -1,0 +1,618 @@
+{% extends 'base_resv.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}WU/Resv/Search{% endblock title %}
+
+{% block page_js %}
+<link rel="stylesheet" href="/static/css/jquery.dataTables.css"/>
+<script src="/static/js/vendor/jquery.dataTables.js"></script>
+
+
+{% endblock page_js %}
+
+
+{% block content_title %}Make a reservation{% endblock content_title %}
+
+
+
+ {% block content %}
+
+
+        <div class='row'>
+    {% crispy search_form %}
+
+      </div>
+
+
+
+<div id="modal-selectgame" class="reveal-modal" data-reveal >
+  {% include "resv_modal_selectgame.html" %} 
+</div>
+
+<div id="modal-segment" class="reveal-modal" data-reveal >
+{% include "resv_segform.html" %} 
+      <div id="segbtns" class="row" >
+      <div class='large-8 large-centered columns'>
+      <div id="segbtns" class="row" style="margin-top:20px;">
+            <div class='large-12 large-centered columns'>
+              <div class="columns large-4 small-12 columns small button" onclick="saveandcontinue(false);">Save and continue </div>
+              <div class="columns large-4 small-12 large-offset-1 columns small button" onclick="saveandreview(false);">Save and review reservation </div>
+              <div class="columns large-2 small-12 columns small button secondary" onclick="cancelmodal();" >Cancel </div>
+            </div>
+          </div>
+      </div>
+      </div>
+</div>
+
+<div id="modal-selectperson" class="reveal-modal" data-reveal >
+{% include "resv_modal_selectperson.html" %} 
+</div>
+
+<div id="modal_make_standby" class="reveal-modal" data-reveal>
+{% include "modal_create_standby.html" %} 
+</div>
+
+      <div class='row' id='tablecontainer'>
+
+        
+
+      </div>
+<script>
+function choose_graphic(limit_type){
+var graphic = '';
+  if(limit_type=="persons"){
+      graphic = 'fi-torso';
+    console.log('persons fired');
+  } else if(limit_type=="parties"){
+    graphic = 'fi-torsos-all';
+    console.log('parties fired');
+  }
+  return graphic
+}
+function create_occupancy_graphic(cell){
+
+  var s = "";
+  for (var i = 0; i < parseInt(cell.taken); i++){  
+    s = s.concat("<i class='", choose_graphic(cell.taken_type), " spacetaken'></i>");  
+  }
+  for (var i = 0; i < parseInt(cell.free); i++){  
+    s = s.concat("<i class='", choose_graphic(cell.free_type), " spaceopen'></i>");  
+  }
+
+/*
+  var s = "<j class='spacetaken'>";
+  for (var i = 0; i < parseInt(occ) && 0 < parseInt(capacity) ; i++){
+    s = s.concat('&#9632;');
+  }
+  s = s.concat('</j><j class="spaceopen">');
+  for (var i = 0; i < parseInt(capacity) - parseInt(occ); i++){
+    s = s.concat('&#9633;');
+  }
+  s = s.concat('</j>'); */
+
+//if (capacity > 0){s = s.concat('<br/>');}
+console.log(s);
+return s;
+}
+
+function create_dogga_graphic(has_dogs){
+  if(has_dogs){return '<i class="fi-paw doggiestyle"></i>';}
+  else {return '';}
+}
+function cast_to_string(maybe_string){
+if (!(typeof maybe_string == 'string' || maybe_string instanceof String)){
+return maybe_string.toString();
+} else {
+  return maybe_string;
+}
+}
+function create_cell_simple(raw_cell, is_header){
+var cell = cast_to_string(raw_cell);
+  if(is_header){return '<th>'.concat(cell,'</th>');}
+  else {return '<td>'.concat(cell,'</td>');}
+}
+function create_cell(cell, is_header){
+  var cell_str = '';
+  if(cell.cell_type == 'open'){
+    cell_str = "<j  class='button resv' onclick=\"create_segment(";
+    cell_str = cell_str.concat("'", cell.blind_id, "', '", cell.date, "');\">");
+    console.log(cell);
+    //console.log(cell.capacity);
+    cell_str = cell_str.concat(create_occupancy_graphic(cell));
+    /*for(var i = 0; i < cell.occupancies.length; i++){
+        cell.occupancies[i];
+        cell_str = cell_str.concat(create_occupancy_graphic(cell.occupancies[i]['occ'], cell.occupancies[i]['capacity']));
+    }*/
+    cell_str = cell_str.concat(create_dogga_graphic(cell.has_dogs));
+  } else if (cell.cell_type == 'closed'){
+    cell_str = '<j class="spaceoffline">Closed</j>';
+  } else if (cell.cell_type == 'raw'){
+    cell_str = cast_to_string(cell.val);
+  }
+    cell_str = cell_str.concat('</j>');
+  cell_str =  create_cell_simple(cell_str, is_header);
+  return cell_str;
+}
+
+function create_row(raw_rows, is_header){
+  var row = '<tr>';
+  for (var i=0; i < raw_rows.length; i++){
+    row = row.concat(create_cell(raw_rows[i], is_header));
+  }
+  row = row.concat('</tr>')
+  return row;
+}
+function destroy_if_exists(handle){
+
+  if ( $.fn.dataTable.isDataTable( handle ) ) {
+        console.log('this is a datatable')
+        var dtable = $(handle).DataTable();
+        dtable.destroy();
+    }
+}
+function pop_ranch_table(data){
+  var table = "<table id='resvtable' >";
+  if(data.success){
+
+    table = table.concat('<thead>');
+    table = table.concat(create_row(data.header, true));
+    table = table.concat('</thead><tbody>');
+    for(var i = 0; i < data.table_data.length; i++){
+      table = table.concat(create_row(data.table_data[i], false));
+    }
+    table = table.concat('</tbody> </table>');
+  } else {alert('Bad things!')}
+    
+  destroy_if_exists('#resvtable');
+  //$("#resvtable tr").remove();
+  $( '#resvtable' ).remove();
+  $('#tablecontainer').append(table);
+  var $height = document.documentElement.clientHeight;
+  $('#tablecontainer').css({'max-height': $height});
+  console.log($height);
+  console.log($height*.9);
+  if ( $.fn.dataTable.isDataTable( '#resvtable' ) ) {
+      console.log('this is a datatable2')
+      var dtable = $('#resvtable').DataTable();
+    }
+else {
+      var dtable = $('#resvtable').DataTable({
+  //          "bDestroy": true,
+            "scrollX": true,
+            "scrollY": $height*.9,
+            "searching": false,
+            "paging":   false,
+            "ordering": false,
+            "info":     false
+          });
+      new $.fn.dataTable.FixedColumns( dtable, {
+        leftColumns: 3
+    } );
+  }
+  
+   
+   
+ //  $('#resvtable').css({'min-height': $height});
+}
+
+$.ajaxSetup({
+    beforeSend: function(xhr, settings) {
+            // Send the token only if the method warrants CSRF protection
+            // Using the CSRFToken value acquired earlier
+            xhr.setRequestHeader("X-CSRFToken", "{{ csrf_token }}");
+    }
+});
+function pop_resv_id(data){
+  console.log('pop_resv_id');
+  console.log(data);
+  if (data['action'] == 'continue'){
+     $('#id_resv').val(data['resv_id']);
+     $('#addtoresv').foundation('reveal', 'close'); 
+     $('#submit-id-search').click();
+  } else {
+  window.location.replace('/review/'.concat(data['resv_id']))
+  }
+}
+
+
+
+
+
+
+
+function replace_options(handle, option_list){
+    console.log('replace options called');
+    console.log(handle);
+    console.log(option_list);
+      var $el = $(handle);
+      $el.empty(); // remove old options
+      $.each(option_list, function(key, value) {
+        $el.append($("<option></option>")
+           .attr("value", value[0]).text(value[1]));
+      });
+}
+
+
+
+
+
+
+
+
+function create_segment(blind, start_date){
+  console.log('create_segment');
+  console.log(blind);
+  console.log(start_date);
+  $.ajax({
+    type: "POST",
+    url: '/segment/create/',
+    data: {resv_blind:blind, owner:'{{ user.id }}', start_date:start_date, resv:$('#id_resv').val()},
+    dataType: 'json',
+    success: create_segment_callback
+  });
+}
+function create_segment_callback(data){
+  console.log('Seg create callback success');
+  console.log(data);
+  if(data['error']===""){
+      console.log('no error, selecting game');
+      select_game(data['seg_id']);
+} else if(data['error']=="standby"){
+  console.log('Error: cannot add party, starting standby dialog');
+  load_standby_modal(data['seg_id'], data['resv_id'], "select_game("+data['seg_id']+");", "/cancel/segment/".concat(data['seg_id']));
+ 
+}
+}
+function select_game(seg_id){
+  $.ajax({
+    type: "GET",
+    url: '/segment/' + seg_id+'/game/',
+    //data: {resv_blind:blind, owner:'{{ user.id }}', start_date:start_date, resv:$('#id_resv').val()},
+    dataType: 'json',
+    success: function(data){
+      console.log('Get game callback success');
+      console.log(data);
+      if(data['error']===""){
+        load_game_modal(data['seg_id'], data['game_list']);
+      } else {
+        console.log('Error with selecting game');
+
+      }
+    }
+  }); 
+}
+function load_game_modal(seg_id, game_list){
+  console.log('load_game_modal');
+  if(game_list.length == 1){
+    console.log('Only one game option, skipping modal.');
+    submit_game_type(seg_id, game_list[0][0]); //Skip modal
+  } else {
+    //show modal
+      var $el = $("#id_game_single");
+      $el.empty(); // remove old options
+      $.each(game_list, function(key, value) {
+        console.log(value);
+        
+        $el.append($("<option></option>")
+           .attr("value", value[0]).text(value[1]));
+      });
+      $("#seg_id_holder").val(seg_id);
+    $('#modal-selectgame').foundation('reveal', 'open');
+  }
+}
+ function submit_game_button(){
+  submit_game_type($("#seg_id_holder").val(), $("#id_game_single").val() );
+ }
+function submit_game_type(seg_id, game_id){
+  console.log('submit_game_type');
+  console.log(seg_id);
+  console.log(game_id);
+  $.ajax({
+    type: "POST",
+    url: '/segment/' + seg_id+'/game/',
+    data: {seg_id:seg_id, game_id:game_id},
+    dataType: 'json',
+    success: function(data){
+      console.log('Submit game callback success');
+      console.log(data);
+      if(data['error']===""){
+        get_seg_load_modal(data['seg_id']);
+      } else {
+        console.log('Error with submitting game');
+
+      }
+    }
+  }); 
+    $('#modal-selectgame').foundation('reveal', 'close');
+  }
+
+
+
+
+function get_seg_load_modal(seg_id){
+  $.ajax({
+    type: "GET",
+    url: '/segment/' + seg_id +'/json/',
+    dataType: 'json',
+    success: function(data){
+      console.log(data);
+      if(data['error']===""){
+        load_seg_modal(data['seg']);
+      } else {
+        console.log('Error with viewing segment');
+
+      }
+    }
+  }); 
+}
+
+function create_person_button(pers_id, name, seg_id){
+  console.log('Creating button for:');
+  console.log(pers_id);
+  console.log(name);
+  var btn = "<div class='row button secondary small' id='hunter_"+pers_id+"' style='margin:5px 2px 5px 2px; padding: 10px 5px 10px 5px; width:100%' ";
+  return btn.concat("onclick='removeperson("+pers_id+","+seg_id+");'>"+name+" <i class='fi-x'></i></div>");
+}
+function create_people_buttons(people_list, seg_id){
+  console.log('people_list');
+  console.log(people_list);
+  var h = "";
+  var nh = "";
+  for(var i = 0; i < people_list.length; i++){
+    if(people_list[i][2] ){
+      h = h.concat(create_person_button(people_list[i][0], people_list[i][1], seg_id));
+    } else{
+      nh = nh.concat(create_person_button(people_list[i][0], people_list[i][1], seg_id));
+    }
+
+  }
+    console.log(h);
+    console.log(nh);
+    //$( '#huntercontainer' ).remove();
+    $('#huntercontainer').html(h);
+    //$( '#nonhuntercontainer' ).remove();
+    $('#nonhuntercontainer').html(nh);
+}
+
+function load_seg_modal(data){
+  console.log('load_seg_modal');
+  console.log(data);
+  console.log(data['people']);
+  replace_options('#id_modal_ranch', [[data['ranch'],data['ranch']]]);
+  replace_options('#blindname', [[data['blind'],data['blind']]]);
+  replace_options('#id_seg_game', [[data['game'],data['game']]]);
+  create_people_buttons(data['people'], data['seg_id']);
+  $('#id_resv_start_date').val(data['start_date']);
+  $('#id_resv_length').val(data['duration']);
+  $("#seg_id_holder").val(data['seg_id']);
+  $('#modal-segment').foundation('reveal', 'open');
+}
+
+
+
+function removeperson(pers_id, seg_id){
+  // Should first ask to confirm, but cutting things short in the interim. 
+    $.ajax({
+    type: "POST",
+    url: '/segment/person/drop',
+    data:{seg_id:seg_id, person_id:pers_id},
+    dataType: 'json',
+    success: function(data){
+      console.log(data);
+      if(data['error']===""){
+        get_seg_load_modal(data['seg_id']);
+      } else {
+        console.log('Error with viewing segment');
+
+      }
+    }
+  }); 
+}
+
+
+function select_person(is_hunting){
+  
+//fire up new modal with drop down. 
+    var seg_id =  $("#seg_id_holder").val();
+    $.ajax({
+    type: "GET",
+    url: '/segment/'+seg_id+'/person/addlist/',
+ //   data:{seg_id:seg_id, person_id:pers_id},
+    dataType: 'json',
+    success: function(data){
+      console.log(data);
+      if(data['error']===""){
+        load_person_modal(data['person_list'], seg_id, is_hunting);
+      } else {
+        console.log('Error with viewing segment');
+
+      }
+    }
+  }); 
+}
+
+function load_person_modal(person_list, seg_id, is_hunting){
+console.log('is_hunting');
+  console.log(is_hunting);
+    console.log('load_person_modal');
+      var $el = $("#id_person");
+      $el.empty(); // remove old options
+      $.each(person_list, function(key, value) {
+        console.log(value);
+        console.log(key);
+        $el.append($("<option></option>")
+           .attr("value", value[0]).text(value[1]));
+      });
+      $("#seg_id_holder").val(seg_id);
+      $("#is_hunting_holder").val(is_hunting);
+    $('#modal-selectperson').foundation('reveal', 'open');
+  
+}
+
+function submit_person_button(){
+  console.log($("#is_hunting_holder").val());
+
+  submit_person($("#seg_id_holder").val(), $("#id_person").val(),  $("#is_hunting_holder").val() );
+}
+function submit_person(seg_id, person_id, is_hunting){
+  console.log('submit_person_type');
+  console.log(seg_id);
+  console.log(person_id);
+  console.log(is_hunting);
+  $.ajax({
+    type: "POST",
+    url: '/segment/' + seg_id+'/person/add/',
+    data: {seg_id:seg_id, person_id:person_id, is_hunting: is_hunting},
+    dataType: 'json',
+    success: function(data){
+      console.log('Submit person callback success');
+      console.log(data);
+      if(data['error']===""){
+        get_seg_load_modal(data['seg_id']);
+      } else {
+        console.log('Error with submitting person');
+
+      }
+    }
+  }); 
+    $('#modal-selectgame').foundation('reveal', 'close');
+  }
+
+function saveandcontinue(standby_if_full){
+  submit_dates_and_dog("/resv/",standby_if_full);
+  
+}
+function saveandreview(standby_if_full){
+  submit_dates_and_dog("/review/",standby_if_full);
+}
+
+function submit_dates_and_dog(next_url, standby_if_full){
+    var seg_id = $("#seg_id_holder").val();
+    $.ajax({
+    type: "POST",
+    url: '/segment/' + seg_id+'/datesanddog/',
+    data: {seg_id:seg_id,  
+          start_date:$('#id_resv_start_date').val(), 
+            duration:$('#id_resv_length').val(), 
+            dog:$('#id_dog').val(), 
+            dog_comment:$('#id_dog').val(), 
+            make_standby_if_full:standby_if_full,
+            happy_url:next_url},
+    dataType: 'json',
+    success: callback_seg_submit
+  }); 
+}
+
+function callback_seg_submit(data){
+  console.log('callback_seg_submit');
+  console.log(data);
+  $("#id_resv").val(data['resv_id']);
+  if(data['error']===""){
+    console.log(data['happy_url']+data['resv_id']);
+  window.location.replace(data['happy_url']+data['resv_id']);
+  console.log('callback no error');
+} else if(data['error']=="standby"){
+  
+  if (data['happy_url'] == '/review/'){happy_js = "saveandreview(true);";}
+  else {happy_js = "saveandcontinue(true);";}
+  load_standby_modal(data['seg_id'], data['resv_id'], happy_js, "$('#modal_make_standby').foundation('reveal', 'close');$('#modal-segment').foundation('reveal', 'open');");
+}
+}
+
+
+function cancel_segment(seg_id, callback){
+   $.ajax({
+    type: "GET",
+    url: '/cancel/segment/' + seg_id,
+    dataType: 'json',
+    success: callback
+  }); 
+}
+function cancelmodal(){
+    var seg_id = $("#seg_id_holder").val();
+    cancel_segment(seg_id, function(data){
+      console.log('Submit dates and dog callback success');
+      console.log(data);
+      if(data['error']===""){
+        func(data);
+      } else {
+        console.log('Error with submitting dates and dog');
+
+      }
+    }
+    )
+
+    //$('#modal-segment').foundation('reveal', 'close ');
+    location.reload();
+}
+function load_standby_modal(seg_id, resv_id, happy_js, unhappy_js){
+  console.log('load_standby_modal');
+  $("#seg_id_holder").val(seg_id);
+  $("#id_resv").val(resv_id);
+
+  $("#standby_yes").attr("onclick", happy_js);
+  $("#standby_no").attr("onclick", unhappy_js);
+  $('#modal_make_standby').foundation('reveal', 'open');
+}
+
+function standby_create_yes(){
+console.log('create yes');
+saveandreview(true);
+//window.location.replace("/review/"+$("#id_resv").val());
+}
+function standby_create_no(){
+console.log('create no');
+console.log($("#seg_id_holder").val());
+cancel_segment($("#seg_id_holder").val(), function(data){console.log('cancel standby called');location.reload();});
+}
+
+
+function show_spinner(formData, jqForm, options){
+   // $("#resvtable tr").remove();
+   destroy_if_exists('#resvtable');
+  $( '#resvtable' ).remove();
+  var spinner = "<div id='resvtable' > Loading... </div>";
+  $('#tablecontainer').append(spinner);
+}
+
+</script>
+
+<script >
+
+$(document).ready(function() {
+$("#id_ranch").select2();
+$("#id_game").select2();
+$('#id_start_date').datepicker();
+$('#id_resv_start_date').datepicker();
+$("#id_cluster").select2();
+$("#id_DFGZone").select2();
+$("#id_allows_dogs").select2();
+$("#id_archery").select2();
+$("#ranchsearch").ajaxForm({url: '/search/', type: 'GET',dataType:'json',beforeSubmit:  show_spinner,
+  success: pop_ranch_table
+  });
+});
+</script>
+
+
+    <script>
+      $('<input>').attr({
+            type: 'hidden',
+            id: 'foo',
+            name: 'bar'
+        }).appendTo('form');
+
+
+    var ranch_select = document.getElementById("resv_ranch");
+    var option = document.createElement("option");
+  //  option.text = ranch_display_name;
+  //  option.value = ranch_id;
+  //  ranch_select.add(option);
+
+  //document.getElementById(field).value = text;
+
+$(document).foundation() ;
+  </script>
+
+
+{% endblock content %}
