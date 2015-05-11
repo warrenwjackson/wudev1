@@ -75,7 +75,7 @@ TEMPLATES = [
         },
     },
 ]
-
+TEMPLATE_DIR = [os.path.join(BASE_DIR, 'templates')],
 WSGI_APPLICATION = 'wudev1.wsgi.application'
 
 
@@ -119,5 +119,5 @@ STATICFILES_DIRS = (
 )
 STATIC_URL = '/static/'
 STATIC_ROOT = ''
-
+FIXTURE_DIRS = ('fixtures/',)
 CRISPY_TEMPLATE_PACK = 'foundation'
