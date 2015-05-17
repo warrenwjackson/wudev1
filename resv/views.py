@@ -267,6 +267,7 @@ def search(request):
             return HttpResponse(json_data)
         else:
             print 'invalid form'
+            print form.errors
             pass # bad things
     else:
         print 'wtf'
@@ -277,7 +278,7 @@ def resv(request, resv_id='new'):
     q_ranches = m.Ranch.objects.all()
     search_form = forms.RanchSearchForm(initial={'resv':resv_id})
     context = RequestContext(request, {
-        'search_form':search_form,
+        'form':search_form,
     #    'alerts':[{'level':'warning', 'text':'test alert'}]
     })
     context.update(csrf(request))
