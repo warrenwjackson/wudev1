@@ -429,8 +429,8 @@ class Blind(models.Model):
         print 'wo sb',
         print segs
         if game:
-            print 'filtering for game'
-            segs = segs.filter(game__game_type=game)
+            print 'filtering for game', game
+            segs = segs.filter(game__game_type=game.game_type)
             print segs
         for seg in segs:
             occ['parties'] += 1
@@ -1103,9 +1103,16 @@ def notify_standby(seg_id):
     pass
 
 def check_standby_list(take_action=False, resv_date=False, blind=False):
-    segs = ResvSegment.objects.filter(state='Standby').order_by('created')
-    if resv_date:
+    # Find all current standby segments, ordered by created date
+    segs = ResvSegment.objects.filter(state='Standby', end_date__gte=dt.date.today()).order_by('standby_updated')
+    if resv_date: # If we're looking for segs on one particular day
         segs = segs.filter(start_date__lte=resv_date, end_date__gte=resv_date)
+    
+    #Cycle through segs, if there is at least partial availability, take action (if take_action == True)
+    #for seg in segs:
+
+
+
     blinds = Blind.objects.filter(resvsegment__state='Pending')
     if blind:
         segs = segs.filter(blind=blind)
