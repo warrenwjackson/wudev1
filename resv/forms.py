@@ -2,8 +2,8 @@ import datetime as dt
 import itertools
 
 from django import forms
-from crispy_forms.helper import FormHelper
-from crispy_forms_foundation.layout  import Layout, Row, Column, Fieldset, Field, SplitDateTimeField, RowFluid, Column, Div, ButtonHolder, Submit, HTML
+#from crispy_forms.helper import FormHelper
+#from crispy_forms_foundation.layout  import Layout, Row, Column, Fieldset, Field, SplitDateTimeField, RowFluid, Column, Div, ButtonHolder, Submit, HTML
 
 #from django.forms.extras.widgets import RadioSelect
 
@@ -12,25 +12,25 @@ from resv import models as m
 class RanchSearchForm(forms.Form):
     RANCHES = [(ranch.id, ranch.display_name()) for ranch in m.Ranch.objects.all()]
 #    RANCHES = [(1, 'test')]
-    ranch = forms.MultipleChoiceField(choices=RANCHES, required=False, label='Filter by ranch:')#, initial='Enter ranch name or number'
+    ranch = forms.MultipleChoiceField(choices=RANCHES, required=False, widget=forms.SelectMultiple(attrs={'style':'width:100%'}))#, initial='Enter ranch name or number'
 
     GAME = [('', '')] + [(game.id, game.name) for game in m.Game.objects.all()]
-    game = forms.ChoiceField(choices=GAME, required=False, label='Filter by game / use:')
+    game = forms.ChoiceField(choices=GAME, required=False, widget=forms.Select(attrs={'style':'width:100%;height:100%'}))
     
 
     start_date = forms.DateField(initial=dt.date.today, widget=forms.DateInput(format = '%m/%d/%Y'), input_formats=('%m/%d/%Y',), required=False)
 
     CLUSTERS = [('', '')] + [(cluster.id, cluster.name) for cluster in m.Cluster.objects.all()]
-    cluster = forms.ChoiceField(choices=CLUSTERS, required=False, label='Filter by cluster:')  
+    cluster = forms.ChoiceField(choices=CLUSTERS, required=False,  widget=forms.Select(attrs={'style':'width:100%'}))  
 
     DFGZONES = [('', '')] + [(zone.id, zone.name) for zone in m.GameRegion.objects.all()]
-    DFGZone = forms.ChoiceField(choices=DFGZONES, required=False, label='Filter by DFG Zone:')  
+    DFGZone = forms.ChoiceField(choices=DFGZONES, required=False,  widget=forms.Select(attrs={'style':'width:100%'}))  
 
-    allows_dogs = forms.ChoiceField(required=False, choices=(('0,1',""),('1','Yes'),('0', 'No')), label='Allows dogs for bird hunting:')
-    archery = forms.ChoiceField(required=False, choices=(('0', 'General'),('1','Archery only'),('0,1', 'All ranches')), label='Big game weapon use')
+    allows_dogs = forms.ChoiceField(required=False, choices=(('0,1',""),('1','Yes'),('0', 'No')), widget=forms.Select(attrs={'style':'width:100%'}))
+    archery = forms.ChoiceField(required=False, choices=(('0', 'General'),('1','Archery only'),('0,1', 'All ranches')), widget=forms.Select(attrs={'style':'width:100%'}))
     
     resv = forms.CharField(max_length=20, required=True)
-
+    r = '''
     def __init__(self, *args,  **kwargs):
         self.helper = FormHelper()
         #self.helper.form_action = '/search/'
@@ -58,7 +58,7 @@ class RanchSearchForm(forms.Form):
             Field('resv', type='hidden')
         )
         super(RanchSearchForm, self).__init__(*args, **kwargs)
-
+'''
 
 def make_person_form_field(index, kind, valid):
    # print 'making person form field'

@@ -19,7 +19,73 @@
 
 
         <div class='row'>
-    {% crispy search_form %}
+<form  id="ranchsearch" method="post">
+
+  <div class="row" >
+    <div class="columns large-4 columns" >
+      <div id="div_{{ form.ranch.id_for_label }}"  class="ctrlHolder">
+        {{ form.ranch.errors }}
+        <label for="{{ form.ranch.id_for_label }}" >Filter by ranch: </label>
+        {{ form.ranch }}
+      </div>
+    </div>
+    <div class="columns large-4 columns" >
+        <div id="div_{{ form.game.id_for_label }}" style="width:100%" class="ctrlHolder">
+          <label for="{{ form.game.id_for_label }}" >Filter by game / use: </label>
+          {{ form.game }}
+      </div>
+    </div>
+    <div class="columns large-4 columns" >
+      <div id="div_{{ form.start_date.id_for_label }}" style="width:100%" class="ctrlHolder">
+      <label for="{{ form.start_date.id_for_label }}" > Start date </label>
+      {{ form.start_date }}
+      </div>
+    </div>
+  </div>
+
+  <div class="row" >
+    <div class="columns large-6 columns" >
+      <div id="div_{{ form.cluster.id_for_label  }}" class="ctrlHolder">
+        <label for="{{ form.cluster.id_for_label }}" >Filter by cluster:</label>
+       {{ form.cluster }}
+      </div>
+    </div>
+    <div class="columns large-6 columns" >
+      <div id="div_{{ form.DFGZone.id_for_label  }}" class="ctrlHolder">
+        <label for="{{ form.DFGZone.id_for_label  }}" >Filter by DFG Zone:</label>
+  {{ form.DFGZone }}
+      </div>
+    </div>
+  </div>
+  <p></p>
+
+  <div class="row" >
+    <div class="columns large-4 columns" >
+      <div id="div_{{ form.allows_dogs.id_for_label }}" class="ctrlHolder">
+        <label for="id_{{ form.allows_dogs.id_for_label }}" >Allows dogs for bird hunting:</label>
+          {{ form.allows_dogs }}
+      </div>
+    </div>
+
+    <div class="columns large-6 columns" >
+      <div id="div_{{ form.archery.id_for_label  }}" class="ctrlHolder">
+        <label for="id_{{ form.archery.id_for_label  }}" >Big game weapon use</label>
+        {{ form.archery }}
+      </div>
+    </div>
+  </div>
+  <p></p>
+
+  <div class="row" >
+    <input type="submit" name="Search" value="Search" class="submit button" id="submit-id-search" />
+  </div>
+  <input id="id_resv" name="resv" type="hidden" value="new" />
+  {% csrf_token %}
+</form>
+
+
+
+
 
       </div>
 
