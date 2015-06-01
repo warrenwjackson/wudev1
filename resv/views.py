@@ -5,7 +5,7 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.template import RequestContext, loader
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.context_processors import csrf
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.db.models import Q
@@ -395,3 +395,7 @@ def sign_up_in(request):
         return auth_and_login(request)
     else:
         return redirect("/login/")
+
+def logoutview(request):
+    logout(request)
+    return redirect("/")

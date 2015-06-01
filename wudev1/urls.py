@@ -36,6 +36,7 @@ urlpatterns = patterns('',
     #url(r'^segment/save/', 'resv.views.segment_save'),
 
     url(r'^login/', 'resv.views.loginview'),
+    url(r'^logout/', 'resv.views.logoutview'),
     url(r'^auth/', 'resv.views.auth_and_login'),
     url(r'^signup/', 'resv.views.sign_up_in'),
     
