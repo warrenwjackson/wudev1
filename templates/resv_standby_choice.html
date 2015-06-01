@@ -1,0 +1,22 @@
+{% extends 'base_resv.html' %}
+
+
+{% block title %}WU/Resv/Standby{% endblock title %}
+
+{% block page_js %}
+<link rel="stylesheet" href="/static/css/jquery.dataTables.css"/>
+<script src="/static/js/vendor/jquery.dataTables.js"></script>
+{% endblock page_js %}
+
+
+{% block content_title %}Standby{% endblock content_title %}
+
+
+
+ {% block content %}
+Choose what you'd like to do with this segment:<br/>
+
+Under construction: will be able to confirm you're standby, and cancel conflicting reservations. 
+
+{{ seg }}
+{% endblock content %}

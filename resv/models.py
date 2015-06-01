@@ -71,6 +71,23 @@ def update_or_create(model, id, **kwargs):
         obj = model(**kwargs)
         obj.save()
         return obj
+
+
+def standby_confirm_window(on_point_dt, seg_hunt_date):
+    windows = [ [dt.timedelta(days=60), dt.timedelta(hours=168)],
+                [dt.timedelta(days=30), dt.timedelta(hours=96)],
+                [dt.timedelta(days=14), dt.timedelta(hours=48)],
+                [dt.timedelta(days=4), dt.timedelta(hours=24)],
+                [dt.timedelta(days=2), dt.timedelta(hours=16)],
+                [dt.timedelta(days=1), dt.timedelta(hours=5)],
+                [dt.timedelta(days=0), dt.timedelta(hours=1)], 
+            ]
+    delta = seg_hunt_date - on_point_dt.date()
+    print 'Delta is: ', delta
+    for window in windows:
+        if delta >= window[0]:
+            return window[1]
+
 def filter_exclude_standby(segs):
     segs = segs.filter(~Q(state='Standby - Pending'))
     segs = segs.filter(~Q(state='Standby'))
@@ -712,27 +729,17 @@ class ResvSegment(models.Model):
         print 'Confirming standby', self
 
 
-    def has_standby_expired(self):
-        windows = [   [dt.timedelta(days=14), dt.timedelta(hours=48)],
-                    [dt.timedelta(days=7), dt.timedelta(hours=24)],
-                    [dt.timedelta(days=2), dt.timedelta(hours=8)],
-                    [dt.timedelta(days=1), dt.timedelta(hours=5)],
-                    [0, dt.timedelta(hours=1)], 
-                ]
-        if self.standby_state == 1:
-            window = 0
-            for l, w in windows:
-                if l <= self.start_date - timezone.now().today():
-                    window = w
-            if window < self.standby_updated - timezone.now():
-                return False
-            return True
-        return -1
+
     @saveme
     def standby_on_point(self):
         # todo: email people
         self.standby_state = 1
         self.standby_updated = timezone.now()
+
+    def standby_is_on_point(self):
+        if self.state == 'Standby' and self.standby_state == 1 and self.standby_updated + standby_confirm_window(self.standby_updated, self.start_date) > timezone.now():
+            return True
+        return False
 
     @transition(field=state, source=['Confirmed'], target='Complete')
     def complete(self):

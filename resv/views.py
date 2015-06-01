@@ -333,7 +333,18 @@ def cancel(request, obj_type, obj_id):
         obj.resv.check_rules()
         return redirect(review, resv_id=obj.resv.id)
     return redirect(home)
-
+@login_required(login_url='/login/')
+def standby_choice_review(request, seg_id):
+    seg = m.ResvSegment.objects.get(pk=seg_id)
+    if seg.standby_is_on_point():
+        # Show the user a choice screen
+        context = RequestContext(request, {
+        'seg':seg,
+        })
+        return render(request, 'resv_standby_choice.html', context_instance=context)
+    else:
+        # Print a message like: This standby segment is not able to be filled yet, or the confirmation window has expired. 
+        pass
 @login_required(login_url='/login/')  
 def ranch_mrktg(request, ranch_id):
     pass

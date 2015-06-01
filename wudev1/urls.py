@@ -32,6 +32,7 @@ urlpatterns = patterns('',
     url(r'^segment/(?P<seg_id>\d+)/person/add/$', 'resv.views.segment_person_ADD'),
     url(r'^segment/(?P<seg_id>\d+)/datesanddog/$', 'resv.views.segment_dates_and_dog'),
 
+    url(r'^standby/choice/(?P<seg_id>\w+)$', 'resv.views.standby_choice_review'),
     #url(r'^segment/open/(?P<seg_id>\w+)$', 'resv.views.segment_open'),
     #url(r'^segment/save/', 'resv.views.segment_save'),
 
