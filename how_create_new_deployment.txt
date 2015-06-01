@@ -1,0 +1,5 @@
+heroku create wudev1
+git push heroku master
+heroku run python manage.py migrate auth
+heroku run python manage.py migrate
+heroku run python manage.py loaddata base_data.json
