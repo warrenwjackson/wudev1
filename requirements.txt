@@ -3,7 +3,7 @@ Django-Select2==4.3.1
 crispy-forms-foundation==0.2.4.1
 dj-database-url==0.3.0
 dj-static==0.0.6
-django-crispy-forms==1.4.0
+django-crispy-forms-ng==2.0.0
 django-fsm==2.2.1
 django-model-utils==2.1.1
 django-notifications-hq==0.7.0
