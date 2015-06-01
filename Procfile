@@ -1,0 +1,1 @@
+web: python manage.py collectstatic --noinput; gunicorn wudev1.wsgi -b 0.0.0.0:$PORT
