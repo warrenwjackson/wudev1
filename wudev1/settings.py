@@ -14,7 +14,7 @@ https://docs.djangoproject.com/en/1.8/ref/settings/
 import os
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-print "BASE_DIR: ", BASE_DIR
+#print "BASE_DIR: ", BASE_DIR
 
 AUTH_USER_MODEL = 'resv.Person'  #added 
 # Quick-start development settings - unsuitable for production
@@ -55,7 +55,7 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'django.middleware.security.SecurityMiddleware',
+  #  'django.middleware.security.SecurityMiddleware',
 )
 
 ROOT_URLCONF = 'wudev1.urls'
@@ -77,6 +77,7 @@ TEMPLATES = [
 ]
 TEMPLATE_DIR = [os.path.join(BASE_DIR, 'templates')],
 WSGI_APPLICATION = 'wudev1.wsgi.application'
+#print TEMPLATE_DIR
 
 
 # Database
