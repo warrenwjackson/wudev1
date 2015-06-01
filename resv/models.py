@@ -105,7 +105,14 @@ def filter_non_expired_only_w_backup(segs):
     segs = segs.exclude(Q(state='Backup') & Q(updated__lte=timezone.now() - dt.timedelta(minutes=15)))
     segs = segs.filter(~Q(state='Expired'))
     return segs
-
+def filter_expired_pending_only(segs):
+    segs = segs.filter(Q(state='Pending') & Q(updated__lte=timezone.now() - dt.timedelta(minutes=15))   |
+                       Q(state='Backup') & Q(updated__lte=timezone.now() - dt.timedelta(minutes=15))   |
+                       Q(state='Standby - Pending') & Q(updated__gte=timezone.now() - dt.timedelta(minutes=15)))
+    return segs
+def filter_old_confirmed_only(segs):
+    segs = segs.filter(Q(state='Confirmed') & Q(end_date_ltdt.date.today()))
+    return segs
 def filter_future_blockers_only_w_backup(segs, is_resv=True):
     segs = filter_blockers_only_w_backup(segs).exclude(state='Complete')
     if is_resv:
@@ -387,6 +394,34 @@ class Blind(models.Model):
                 return False
         print 'Complete: ok to add person'
         return True
+    def can_upgrade_standby(self, seg):
+        # return yes, no, partial
+        # For all days of the segment:
+            # is there availability (all, or partial)
+            # is there a segment on standby point
+        can = []
+        for di in (seg.start_date + dt.timedelta(days=n) for n in range((seg.end_date - seg.start_date).days + 1)): 
+            if self.has_standby_on_point(di): # Is there already a standby resv on point?
+                print 'Has standby on point'
+                can.append(0)
+            elif not self.check_availability_parties(di, seg.game, party_count=1, ignore_standby=True): # Is it full by party count?
+                print 'Full of parties'
+                can.append(0)
+            elif self.check_availability_people(di, seg.game, person_count={'total':1, 'hunters':min(1,seg.count_hunters())}, ignore_standby=True):
+                if self.check_availability_people(di, seg.game, person_count={'total':seg.count_heads(), 'hunters':seg.count_hunters()}, ignore_standby=True):
+                    print 'open'
+                    can.append(1)
+                else:
+                    print 'partially open'
+                    can.append(-1)
+            else:
+                can.append(0)
+        print '     Can list: ', can
+        if len(can) == can.count(1):
+            return 'yes'
+        if can.count(-1) + can.count(1) > 0:
+            return 'partial'
+        return 'no'
 
     def can_add_standby(self, resv_date):
         occ = self.get_availability(resv_date, False)
@@ -446,6 +481,12 @@ class Blind(models.Model):
         segs = self._get_segs(resv_date)
         segs = filter_only_standby(segs)
         return segs.order_by('created')
+    def has_standby_on_point(self, resv_date):
+        print self.get_standby_list(resv_date).filter(standby_state=1)
+        if self.get_standby_list(resv_date).filter(standby_state=1).count() > 0:
+            return True
+        return False
+
     def __unicode__(self):
         return '{ranch}: {blind}'.format(ranch=self.ranch.display_name(), blind=self.name)
 
@@ -784,7 +825,7 @@ class ResvSegment(models.Model):
         return self.count_heads(is_hunting=False)
     def get_persons(self, is_hunting=-1):
         if is_hunting == -1:
-            return Person.objects.filter(resvsegmentperson__resv_segment=self).distinct()
+            return [rsp.person for rsp in ResvSegmentPerson.objects.filter(resv_segment=self).distinct()]
         else:
             return [rsp.person for rsp in ResvSegmentPerson.objects.filter(resv_segment=self, is_hunting=is_hunting).distinct()]
 
@@ -1089,18 +1130,34 @@ class MastChangeLog(models.Model):
     initial_value = models.CharField(max_length=40)
     new_value = models.CharField(max_length=40)
 
+#class StandbyTracker(models.Model):
+#    blind = models.ForeignKey('Blind')
 
 # Warnings - person or family level
 # 
+
+
+#######################################################
+############  Standby Functions  ######################
+#######################################################
 
 def find_standby(resv_date, blind):
     segs = ResvSegment.objects.filter(state='Standby', blind=blind, start_date__lte=resv_date, end_date__gte=resv_date).order_by('created')
     if segs.count() > 0:
         return segs[0]
     return False
-
-def notify_standby(seg_id):
+def expire_on_point(seg):
     pass
+
+def notify_standby(seg):
+    email.standby_notification(seg)
+
+def put_seg_on_point(seg):
+    print 'Putting seg on point: ', seg
+    seg.standby_on_point()
+    seg.save()
+    notify_standby(seg)
+
 
 def check_standby_list(take_action=False, resv_date=False, blind=False):
     # Find all current standby segments, ordered by created date
@@ -1109,10 +1166,34 @@ def check_standby_list(take_action=False, resv_date=False, blind=False):
         segs = segs.filter(start_date__lte=resv_date, end_date__gte=resv_date)
     
     #Cycle through segs, if there is at least partial availability, take action (if take_action == True)
-    #for seg in segs:
+    for seg in segs:
+        print 'Checking seg: ', seg
+        #try something like this:
+        can_upgrade = seg.blind.can_upgrade_standby(seg)
+        print '     Can upgrade response: ', can_upgrade
+        if can_upgrade in ['yes', 'partial']:
+            if take_action:
+                print '... taking action'
+                put_seg_on_point(seg)
+
+
+#######################################################
+############  Chron Functions  ########################
+#######################################################
+
+def expire_pending():
+    segs = filter_expired_pending_only(ResvSegment.objects.all())
+    segs.update(state="Expired")
+    segs.save()
 
 
 
+#######################################################
+############  trash  ########################
+#######################################################
+
+
+def garbage():
     blinds = Blind.objects.filter(resvsegment__state='Pending')
     if blind:
         segs = segs.filter(blind=blind)
