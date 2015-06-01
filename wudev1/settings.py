@@ -119,6 +119,6 @@ STATICFILES_DIRS = (
   #  '/var/www/static/',
 )
 STATIC_URL = '/static/'
-STATIC_ROOT = ''
+STATIC_ROOT = 'staticfiles'
 FIXTURE_DIRS = ('fixtures/',)
 CRISPY_TEMPLATE_PACK = 'foundation'
