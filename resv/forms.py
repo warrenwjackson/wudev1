@@ -88,7 +88,8 @@ class StandbyChoice(forms.Form):
     resv = forms.CharField(max_length=20, required=True)
     seg = forms.CharField(max_length=20, required=True)
     owner = forms.IntegerField(required=True)
-    def __init__(self, *args, **kwargs)
+    
+    def __init__(self, *args, **kwargs):
         seg_obj = m.ResvSegment.objects.get(id=self.seg)
         self.helper = FormHelper()
         self.helper.form_id = 'standbychoice'
@@ -105,7 +106,6 @@ class StandbyChoice(forms.Form):
             layout_elements += Row(Column(*col, css_class='large-8 large-centered columns'))
                     
                 
-        ]
         self.helper.layout = Layout(*layout_elements)
         super(ResvSegForm, self).__init__(*args, **kwargs)
         self.fields['resv_ranch'] = forms.ChoiceField(choices=((ranch.id, ranch.display_name()),), required=True, label='Ranch:')
