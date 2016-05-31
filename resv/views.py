@@ -305,7 +305,6 @@ def confirm(request, resv_id):
     print "Confirming resv:", resv_id
     resv = m.Resv.objects.get(pk=resv_id)
     print 'Resv ID {0}, is {1}'.format(resv_id, resv)
-    #resv.change_state('Confirmed')
     try:
         resv.confirm()
         resv.save()
@@ -316,6 +315,20 @@ def confirm(request, resv_id):
         return review(request, resv_id)
     return redirect(home)
 
+@login_required(login_url='/login/')  
+def confirm_segment(request, seg_id):
+    print "Confirming seg:", seg_id
+    seg = m.ResvSegment.objects.get(pk=seg_id)
+    print 'Seg ID {0}, is {1}'.format(seg_id, seg)
+    try:
+        seg.standby_confirm()
+        seg.save()
+        print 'Confirmed.'
+    except TransitionNotAllowed:
+        print 'transition not allowed'
+   
+        return review(request, seg.resv.id)
+    return redirect(home)
 
 
 @login_required(login_url='/login/')  
@@ -338,9 +351,22 @@ def standby_choice_review(request, seg_id):
     seg = m.ResvSegment.objects.get(pk=seg_id)
     if seg.standby_is_on_point():
         # Show the user a choice screen
-        context = RequestContext(request, {
-        'seg':seg,
-        })
+        can_upgrade = seg.blind.can_upgrade_standby(seg)
+        print '     Can upgrade response: ', can_upgrade
+        context = {}
+        if can_upgrade == 'yes':
+            # show an accept screen
+            context = RequestContext(request, {
+            'seg':seg,
+            'adjustments_needed':False
+            })
+            
+        elif can_upgrade == 'partial':
+            # Show a choice screen, depending on the change that is needed. 
+            context = RequestContext(request, {
+            'seg':seg,
+            'adjustments_needed':True
+            })
         return render(request, 'resv_standby_choice.html', context_instance=context)
     else:
         # Print a message like: This standby segment is not able to be filled yet, or the confirmation window has expired. 

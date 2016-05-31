@@ -88,9 +88,12 @@ def standby_confirm_window(on_point_dt, seg_hunt_date):
         if delta >= window[0]:
             return window[1]
 
-def filter_exclude_standby(segs):
+def filter_exclude_standby(segs, exclude_on_point=True):
     segs = segs.filter(~Q(state='Standby - Pending'))
-    segs = segs.filter(~Q(state='Standby'))
+    if exclude_on_point:
+        segs = segs.filter(~Q(state='Standby'))
+    else:
+        segs = segs.filter(~Q(state='Standby') & ~Q(standby_state=1))
     return segs
 def filter_only_standby(segs):
     segs = segs.filter(Q(state='Standby - Pending') | Q(state='Standby'))
@@ -358,9 +361,9 @@ class Blind(models.Model):
                 output['taken'] = occ['parties']            
         print self, output
         return output
-    def get_availability(self, resv_date, game):
+    def get_availability(self, resv_date, game, exclude_standby=False):
         output = {'available':['closed', 'open'][self.shoot_days[resv_date.weekday()] == '1']}
-        occ = self.occupancy(resv_date, game)
+        occ = self.occupancy(resv_date, game, exclude_standby)
         cap = self.get_capacity(resv_date, game)
         output['occupancy'] = [{'occ':occ['parties'], 'capacity':cap['parties']},
                             {'occ':occ['hunters'], 'capacity':cap['hunters']},
@@ -368,8 +371,8 @@ class Blind(models.Model):
         output['dogs'] = occ['dogs']
         output['dog_comments'] = occ['dog_comments']
         return output  
-    def check_availability_parties(self, resv_date, game, party_count=1, ignore_standby=False):                
-        occ = self.get_availability(resv_date, False)
+    def check_availability_parties(self, resv_date, game, party_count=1, ignore_standby=False, exclude_standby=False):                
+        occ = self.get_availability(resv_date, False, exclude_standby)
         print 'cap: {0}, occ:{1}'.format(occ['occupancy'][0]['capacity'], occ['occupancy'][0]['occ'] )
 
         if occ['occupancy'][0]['capacity'] > 0 and occ['occupancy'][0]['capacity'] - occ['occupancy'][0]['occ'] < party_count:
@@ -380,8 +383,8 @@ class Blind(models.Model):
             return False
         return True
 
-    def check_availability_people(self, resv_date, game, person_count, ignore_standby=False):
-        occ = self.get_availability(resv_date, game)
+    def check_availability_people(self, resv_date, game, person_count, ignore_standby=False, exclude_standby=False):
+        occ = self.get_availability(resv_date, game, exclude_standby)
         if occ['occupancy'][2]['capacity'] > 0 and occ['occupancy'][2]['capacity'] - occ['occupancy'][2]['occ'] < person_count['total']:
             print 'Complete: cannot because of overall headcount cap: {0}, occ: {1}, open: {2}'.format(occ['occupancy'][2]['capacity'], occ['occupancy'][2]['occ'], occ['occupancy'][2]['capacity'] - occ['occupancy'][2]['occ']  )
             return False
@@ -416,16 +419,19 @@ class Blind(models.Model):
         # For all days of the segment:
             # is there availability (all, or partial)
             # is there a segment on standby point
+        print '##########can_upgrade_standby'
         can = []
         for di in (seg.start_date + dt.timedelta(days=n) for n in range((seg.end_date - seg.start_date).days + 1)): 
-            if self.has_standby_on_point(di): # Is there already a standby resv on point?
+            print 'Checking ability to upgrade on ', di
+            if self.has_standby_on_point(di) and not seg.standby_is_on_point(): # Is there already a standby resv on point?
                 print 'Has standby on point'
                 can.append(0)
-            elif not self.check_availability_parties(di, seg.game, party_count=1, ignore_standby=True): # Is it full by party count?
+            elif not self.check_availability_parties(di, seg.game, party_count=1, ignore_standby=True, exclude_standby=True): # Is it full by party count?
                 print 'Full of parties'
                 can.append(0)
-            elif self.check_availability_people(di, seg.game, person_count={'total':1, 'hunters':min(1,seg.count_hunters())}, ignore_standby=True):
-                if self.check_availability_people(di, seg.game, person_count={'total':seg.count_heads(), 'hunters':seg.count_hunters()}, ignore_standby=True):
+            elif self.check_availability_people(di, seg.game, person_count={'total':1, 'hunters':min(1,seg.count_hunters())}, ignore_standby=True, exclude_standby=True):
+                print seg.count_heads()
+                if self.check_availability_people(di, seg.game, person_count={'total':seg.count_heads(), 'hunters':seg.count_hunters()}, ignore_standby=True, exclude_standby=True):
                     print 'open'
                     can.append(1)
                 else:
@@ -468,17 +474,16 @@ class Blind(models.Model):
         #This should really be at a season level
         return {'parties':self.capacity_parties, 'hunters':self.capacity_hunters, 'persons':self.capacity_persons}
 
-    def _get_segs(self, resv_date):
+    def _get_segs(self, resv_date, exclude_standby=False):
         segs = filter_blockers_only(self.resvsegment_set.filter(start_date__lte=resv_date, end_date__gte=resv_date))
+        if exclude_standby:
+            segs = filter_exclude_standby(segs, exclude_on_point=False)
         return segs
 
-    def occupancy(self, resv_date, game=False):
+    def occupancy(self, resv_date, game=False, exclude_standby=False):
         occ = {'parties':0, 'hunters':0,'nonhunters':0, 'dogs':0, 'dog_comments':''}
-        segs = self._get_segs(resv_date)
-        print 'starting segs',
-        print segs
-        segs = filter_exclude_standby(segs)
-        print 'wo sb',
+        segs = self._get_segs(resv_date, exclude_standby)
+        print 'occupancy called for date: {0}, game: {1}, looking at segs'.format(resv_date, game),
         print segs
         if game:
             print 'filtering for game', game
@@ -616,6 +621,9 @@ class Resv(models.Model):
             elif seg.state == 'Backup':
                 print 'Cancelling backup'
                 seg.cancel()
+            elif seg.state == 'Standby' and seg.standby_is_on_point():
+                print 'Confirming standby'
+                seg.standby_confirm()
             else:
                 print 'Confirming segment'
                 seg.confirm()
@@ -723,18 +731,21 @@ class ResvSegment(models.Model):
     def standby_hold(self):
         #TODO: do some checks. 
         print 'Holding standby', self
-    @transition(field=state, source=['Standby'], target='Confirmed')#, conditions=[rules.fifteen_minutes])#TODO: add rules to ensure this gets executed right
+    @saveme
+    @transition(field=state, source=['Standby'], target='Confirmed', conditions=[rules.standby_on_point])#TODO: add rules to ensure this gets executed right
     def standby_confirm(self):
         #TODO: do some checks. 
         print 'Confirming standby', self
+        self.standby_state = 0
 
 
 
     @saveme
     def standby_on_point(self):
-        # todo: email people
+        # Set this segment on point for standby
         self.standby_state = 1
         self.standby_updated = timezone.now()
+        email.standby_notification(self)
 
     def standby_is_on_point(self):
         if self.state == 'Standby' and self.standby_state == 1 and self.standby_updated + standby_confirm_window(self.standby_updated, self.start_date) > timezone.now():
@@ -1153,6 +1164,7 @@ def find_standby(resv_date, blind):
     if segs.count() > 0:
         return segs[0]
     return False
+    
 def expire_on_point(seg):
     pass
 
@@ -1163,7 +1175,6 @@ def put_seg_on_point(seg):
     print 'Putting seg on point: ', seg
     seg.standby_on_point()
     seg.save()
-    notify_standby(seg)
 
 
 def check_standby_list(take_action=False, resv_date=False, blind=False):
@@ -1174,9 +1185,12 @@ def check_standby_list(take_action=False, resv_date=False, blind=False):
     
     #Cycle through segs, if there is at least partial availability, take action (if take_action == True)
     for seg in segs:
+        print '################################'
         print 'Checking seg: ', seg
         #try something like this:
         can_upgrade = seg.blind.can_upgrade_standby(seg)
+                #Works when full
+                #Does not work when party limit ==1, and first party just cancelled.
         print '     Can upgrade response: ', can_upgrade
         if can_upgrade in ['yes', 'partial']:
             if take_action:

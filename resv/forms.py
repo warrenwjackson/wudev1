@@ -84,6 +84,31 @@ def make_person_form_row(index, hunter=True, nonhunter=True):
 #    self.fields['game'] = forms.ChoiceField(choices=[(game.id, game.name) for game in ranch.get_game()], required=True, label='Game:')
 #    def __init__(self, *args, **kwargs):
 
+class StandbyChoice(forms.Form):
+    resv = forms.CharField(max_length=20, required=True)
+    seg = forms.CharField(max_length=20, required=True)
+    owner = forms.IntegerField(required=True)
+    def __init__(self, *args, **kwargs)
+        seg_obj = m.ResvSegment.objects.get(id=self.seg)
+        self.helper = FormHelper()
+        self.helper.form_id = 'standbychoice'
+        self.helper.form_action = '/standbychoice/save/'
+        self.helper.form_method = 'POST'
+        layout_elements = [ Field('resv', type='hidden'),
+            Field('seg', type='hidden'),
+            Field('owner', type='hidden')
+            ]
+        for person in seg_obj.get_persons():
+            col = []
+            for di in (seg_obj.start_date + dt.timedelta(days=n) for n in range((seg_obj.end_date - seg_obj.start_date).days + 1)): 
+                col.append(Column(Field('select_{0}_{1}'.format(person.id, di), style='width:100%'), css_class='large-1 columns'))
+            layout_elements += Row(Column(*col, css_class='large-8 large-centered columns'))
+                    
+                
+        ]
+        self.helper.layout = Layout(*layout_elements)
+        super(ResvSegForm, self).__init__(*args, **kwargs)
+        self.fields['resv_ranch'] = forms.ChoiceField(choices=((ranch.id, ranch.display_name()),), required=True, label='Ranch:')
 
 class ResvSegForm(forms.Form):
     resv = forms.CharField(max_length=20, required=True)

@@ -136,5 +136,9 @@ def guest_48_hours(self, resv):
     return True
 
 @print_rule
+def standby_on_point(seg):
+    return seg.standby_is_on_point()
+
+@print_rule
 def cancel_segment(seg):
     return True

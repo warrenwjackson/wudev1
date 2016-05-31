@@ -1,0 +1,5 @@
+turn on postgres93 via gui
+
+cd dev/prs/wudev1
+workon web 
+python manage.py runserver
