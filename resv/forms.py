@@ -30,35 +30,6 @@ class RanchSearchForm(forms.Form):
     archery = forms.ChoiceField(required=False, choices=(('0', 'General'),('1','Archery only'),('0,1', 'All ranches')), widget=forms.Select(attrs={'style':'width:100%'}))
     
     resv = forms.CharField(max_length=20, required=True)
-    r = '''
-    def __init__(self, *args,  **kwargs):
-        self.helper = FormHelper()
-        #self.helper.form_action = '/search/'
-        #self.helper.form_method = 'GET'
-
-        self.helper.form_id = 'ranchsearch'
-        self.helper.layout = Layout(            
-            Row(
-                Column(Field('ranch', style='width:100%'), css_class='large-4 columns'),
-                Column(Field('game', style='width:100%;height:100%;'), css_class='large-4 columns'),
-                Column(Field('start_date', style='width:100%'), css_class='large-4 columns'),
-            ),
-            
-            Row(
-                Column(Field('cluster', style='width:100%'), css_class='large-6 columns'),
-                Column(Field('DFGZone', style='width:100%'), css_class='large-6 columns'),
-            ),
-            HTML("<p></p>"),
-            Row(
-                Column(Field('allows_dogs', style='width:100%'), css_class='large-4 columns'),
-                Column(Field('archery', style='width:100%'), css_class='large-6 columns'),
-            ),
-            HTML("<p></p>"),
-            Row(Submit('Search', 'Search')),
-            Field('resv', type='hidden')
-        )
-        super(RanchSearchForm, self).__init__(*args, **kwargs)
-'''
 
 def make_person_form_field(index, kind, valid):
    # print 'making person form field'
@@ -79,36 +50,22 @@ def make_person_form_row(index, hunter=True, nonhunter=True):
             id='person_{0}'.format(index)
         )
 
-#class SegDatesGameForm(forms.Form):
-#    seg = forms.CharField(max_length=20, required=True)
-#    self.fields['game'] = forms.ChoiceField(choices=[(game.id, game.name) for game in ranch.get_game()], required=True, label='Game:')
-#    def __init__(self, *args, **kwargs):
 
-class StandbyChoice(forms.Form):
-    resv = forms.CharField(max_length=20, required=True)
-    seg = forms.CharField(max_length=20, required=True)
-    owner = forms.IntegerField(required=True)
-    
-    def __init__(self, *args, **kwargs):
-        seg_obj = m.ResvSegment.objects.get(id=self.seg)
-        self.helper = FormHelper()
-        self.helper.form_id = 'standbychoice'
-        self.helper.form_action = '/standbychoice/save/'
-        self.helper.form_method = 'POST'
-        layout_elements = [ Field('resv', type='hidden'),
-            Field('seg', type='hidden'),
-            Field('owner', type='hidden')
-            ]
-        for person in seg_obj.get_persons():
-            col = []
-            for di in (seg_obj.start_date + dt.timedelta(days=n) for n in range((seg_obj.end_date - seg_obj.start_date).days + 1)): 
-                col.append(Column(Field('select_{0}_{1}'.format(person.id, di), style='width:100%'), css_class='large-1 columns'))
-            layout_elements += Row(Column(*col, css_class='large-8 large-centered columns'))
-                    
-                
-        self.helper.layout = Layout(*layout_elements)
-        super(ResvSegForm, self).__init__(*args, **kwargs)
-        self.fields['resv_ranch'] = forms.ChoiceField(choices=((ranch.id, ranch.display_name()),), required=True, label='Ranch:')
+def standby_choice_factory(seg_obj):
+    class StandbyChoice(forms.Form):
+        resv = forms.CharField(max_length=20, required=True, widget = forms.HiddenInput())
+        seg = forms.CharField(max_length=20, required=True, widget = forms.HiddenInput())
+        owner = forms.IntegerField(required=True, widget = forms.HiddenInput())
+        field_list = []
+        def __init__(self, *args, **kwargs):
+            super(StandbyChoice, self).__init__(*args, **kwargs)
+            for person in seg_obj.get_persons():
+                row = []
+                for n in range((seg_obj.end_date - seg_obj.start_date).days + 1): 
+                    self.fields['select_{0}_{1}'.format(person.id, n)] = forms.ChoiceField(choices=(('choice id', 'choice name'),), required=True, label='')        
+                    row.append(self.fields['select_{0}_{1}'.format(person.id, n)])
+                self.field_list.append(row)
+    return StandbyChoice
 
 class ResvSegForm(forms.Form):
     resv = forms.CharField(max_length=20, required=True)

@@ -16,8 +16,8 @@
  {% block content %}
 Choose what you'd like to do with this segment:<br/>
 {{ seg }}
-Adjustments needed: {{ adjustments_needed }}
-
+Adjustments needed: {{ adjustments_needed }} </br>
+{{ form }}
 
 <a href='/confirmsegment/{{ seg.id }}' class='button expand' id='standby_confirm' >Confirm reservation</a>
 <a href='/cancel/segment/{{ seg.id }}' id='standby_cancel' class='button expand'>Cancel standby</a>

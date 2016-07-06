@@ -748,6 +748,8 @@ class ResvSegment(models.Model):
         email.standby_notification(self)
 
     def standby_is_on_point(self):
+       # print 'standby_updated', self.standby_updated
+        #print 'confirm window', standby_confirm_window(self.standby_updated, self.start_date) > timezone.now()
         if self.state == 'Standby' and self.standby_state == 1 and self.standby_updated + standby_confirm_window(self.standby_updated, self.start_date) > timezone.now():
             return True
         return False

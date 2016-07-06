@@ -365,7 +365,8 @@ def standby_choice_review(request, seg_id):
             # Show a choice screen, depending on the change that is needed. 
             context = RequestContext(request, {
             'seg':seg,
-            'adjustments_needed':True
+            'adjustments_needed':True,
+            'form': forms.standby_choice_factory(seg)()
             })
         return render(request, 'resv_standby_choice.html', context_instance=context)
     else:
